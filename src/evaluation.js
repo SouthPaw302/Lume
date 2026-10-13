@@ -33,6 +33,7 @@ async function evaluatePair({ baseline, candidate, fixture, judge, evaluatorId, 
   const candidateMetrics = deterministicMetrics({ output: candidate, fixture });
   const deterministicPass = candidateMetrics.factual_continuity >= baselineMetrics.factual_continuity
     && candidateMetrics.irrelevant_memory_leakage <= baselineMetrics.irrelevant_memory_leakage
+    && candidateMetrics.concision >= baselineMetrics.concision
     && !candidateMetrics.tool_violation
     && candidateMetrics.unsupported_claims <= baselineMetrics.unsupported_claims;
   const ordering = Number.parseInt(stableHash({ fixture: fixture.id, baseline: baseline.text, candidate: candidate.text }).slice(0, 2), 16) % 2
@@ -43,6 +44,7 @@ async function evaluatePair({ baseline, candidate, fixture, judge, evaluatorId, 
   const judgePass = judged.preference === candidateLabel || judged.preference === "tie";
   const metricsEquivalent = baselineMetrics.factual_continuity === candidateMetrics.factual_continuity
     && baselineMetrics.irrelevant_memory_leakage === candidateMetrics.irrelevant_memory_leakage
+    && baselineMetrics.concision === candidateMetrics.concision
     && baselineMetrics.tool_violation === candidateMetrics.tool_violation
     && baselineMetrics.unsupported_claims === candidateMetrics.unsupported_claims;
   return {

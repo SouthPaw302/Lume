@@ -32,3 +32,9 @@ test("same-policy compatibility accepts metric equivalence despite wording prefe
   assert.equal(result.metrics_equivalent, true);
   assert.equal(result.passed, true);
 });
+
+test("strict candidate evaluation rejects lost concision", async () => {
+  const result = await evaluatePair({ baseline: { text: "short fact" }, candidate: { text: "x".repeat(250), producer_id: "producer" }, fixture: { id: "concise", max_chars: 100 }, evaluatorId: "independent", judge: async () => ({ preference: "B" }) });
+  assert.equal(result.deterministic_pass, false);
+  assert.equal(result.passed, false);
+});
