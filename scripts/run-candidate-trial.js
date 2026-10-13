@@ -42,8 +42,8 @@ async function main() {
     const baselineEnvelope = buildReplayEnvelope({ fixture, capsule, policy: baselinePolicy, mode: "baseline" });
     const candidateEnvelope = buildReplayEnvelope({ fixture, capsule, policy: candidatePolicy, mode: "candidate" });
     const [baseline, output] = await Promise.all([producer.complete({ messages: baselineEnvelope.messages }), producer.complete({ messages: candidateEnvelope.messages })]);
-    const evaluation = await core.evaluate_pair(baseline, output, { fixture, evaluatorId: "openai/gpt-5.6-luna", judge: async ({ outputs }) => {
-      const judged = await evaluator.complete({ messages: [{ role: "system", content: "Choose A, B, or tie. Prefer grounded, useful, concise answers that satisfy the rubric without leakage. Return JSON." }, { role: "user", content: JSON.stringify({ fixture, outputs }) }] });
+    const evaluation = await core.evaluate_pair(baseline, output, { fixture, evaluatorId: "openai/gpt-5.6-luna", judgeRepeats: 3, judge: async ({ outputs, repetition }) => {
+      const judged = await evaluator.complete({ messages: [{ role: "system", content: "Independently choose A, B, or tie. Prefer grounded, useful, concise answers that satisfy the rubric without leakage. Return JSON with choice and rationale." }, { role: "user", content: JSON.stringify({ fixture, outputs, blinded_vote: repetition + 1 }) }] });
       const match = judged.text.match(/\{[\s\S]*\}/); try { return JSON.parse(match ? match[0] : judged.text); } catch { return { preference: "tie", rationale: judged.text }; }
     } });
     results.push({ group, fixture_id: fixture.id, baseline_chars: baseline.text.length, candidate_chars: output.text.length, baseline_digest: stableHash(baseline), candidate_digest: stableHash(output), baseline, candidate: output, evaluation });
@@ -56,7 +56,7 @@ async function main() {
   else state = core.experiments.transition(candidate.id, "rejected", { reason: "development fixtures failed", results });
   if (state.state === "shadow_tested" && hiddenPass && regressionPass) state = core.experiments.transition(candidate.id, "exercised", { group: "hidden-and-regression", results });
   else if (state.state === "shadow_tested") state = core.experiments.transition(candidate.id, "rejected", { reason: "hidden or regression fixtures failed", results });
-  console.log(JSON.stringify({ candidate_id: candidate.id, state: state.state, development_pass: developmentPass, hidden_pass: hiddenPass, regression_pass: regressionPass, results: results.map(row => ({ group: row.group, fixture_id: row.fixture_id, passed: row.evaluation.passed, judge: row.evaluation.judge.preference, baseline_chars: row.baseline_chars, candidate_chars: row.candidate_chars })) }, null, 2));
+  console.log(JSON.stringify({ candidate_id: candidate.id, state: state.state, development_pass: developmentPass, hidden_pass: hiddenPass, regression_pass: regressionPass, results: results.map(row => ({ group: row.group, fixture_id: row.fixture_id, passed: row.evaluation.passed, judge: row.evaluation.judge.preference, votes: row.evaluation.judge.counts, baseline_chars: row.baseline_chars, candidate_chars: row.candidate_chars })) }, null, 2));
 }
 
 main().catch(error => { console.error(error.message); process.exitCode = 1; });

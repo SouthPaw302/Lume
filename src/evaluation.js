@@ -9,6 +9,18 @@ function normalizeJudgment(value) {
   return { ...raw, preference, rationale: String(raw.rationale ?? raw.reason ?? "").slice(0, 2000) };
 }
 
+function aggregateJudgments(values) {
+  const votes = values.map(normalizeJudgment);
+  const counts = votes.reduce((all, vote) => ({ ...all, [vote.preference]: all[vote.preference] + 1 }), { A: 0, B: 0, tie: 0 });
+  const decisive = counts.A === counts.B ? "tie" : counts.A > counts.B ? "A" : "B";
+  return {
+    preference: decisive,
+    rationale: votes.map(vote => vote.rationale).filter(Boolean).join(" | ").slice(0, 2000),
+    counts,
+    votes
+  };
+}
+
 function deterministicMetrics({ output, fixture }) {
   const text = String(output?.text ?? output ?? "");
   const lower = text.toLowerCase();
@@ -26,7 +38,7 @@ function deterministicMetrics({ output, fixture }) {
   };
 }
 
-async function evaluatePair({ baseline, candidate, fixture, judge, evaluatorId, expectedEquivalent = false }) {
+async function evaluatePair({ baseline, candidate, fixture, judge, evaluatorId, expectedEquivalent = false, judgeRepeats = 1 }) {
   if (!evaluatorId) throw new Error("independent evaluator id is required");
   if (candidate?.producer_id && candidate.producer_id === evaluatorId) throw new Error("a candidate model cannot evaluate itself");
   const baselineMetrics = deterministicMetrics({ output: baseline, fixture });
@@ -39,7 +51,11 @@ async function evaluatePair({ baseline, candidate, fixture, judge, evaluatorId, 
   const ordering = Number.parseInt(stableHash({ fixture: fixture.id, baseline: baseline.text, candidate: candidate.text }).slice(0, 2), 16) % 2
     ? [{ label: "A", output: baseline }, { label: "B", output: candidate }]
     : [{ label: "A", output: candidate }, { label: "B", output: baseline }];
-  const judged = normalizeJudgment(judge ? await judge({ fixture, outputs: ordering }) : { preference: "tie", useful: null, rationale: "No independent judge configured" });
+  const repeats = Math.max(1, Math.min(5, Math.floor(Number(judgeRepeats) || 1)));
+  const judgments = judge
+    ? await Promise.all(Array.from({ length: repeats }, (_, repetition) => judge({ fixture, outputs: ordering, repetition })))
+    : [{ preference: "tie", useful: null, rationale: "No independent judge configured" }];
+  const judged = aggregateJudgments(judgments);
   const candidateLabel = ordering.find(item => item.output === candidate).label;
   const judgePass = judged.preference === candidateLabel || judged.preference === "tie";
   const metricsEquivalent = baselineMetrics.factual_continuity === candidateMetrics.factual_continuity
@@ -62,4 +78,4 @@ async function evaluatePair({ baseline, candidate, fixture, judge, evaluatorId, 
   };
 }
 
-module.exports = { deterministicMetrics, evaluatePair, normalizeJudgment };
+module.exports = { aggregateJudgments, deterministicMetrics, evaluatePair, normalizeJudgment };
