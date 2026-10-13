@@ -19,6 +19,11 @@ Terminal states are `neutral`, `rejected`, `regressed`, `rolled_back`, and
 `expired`. Promotion requires repeated evidence, regression safety, an approval
 signature, and a reversible snapshot of the live policy.
 
+Before signing, `build_approval_card(id)` returns the candidate hypothesis,
+bounded behavior target, evidence digests, validation count, tradeoffs, and
+explicit promotion and rollback actions. The card is descriptive; only the
+HMAC-linked Cardona approval can unlock promotion.
+
 ## Harness migration
 
 OpenClaw remains available as the live fallback. Hermes profiles run against

@@ -69,6 +69,26 @@ class ExperimentEngine {
 
   evaluatePair(input) { return evaluatePair(input); }
 
+  approvalCard(candidateId) {
+    const candidate = this.get(candidateId); if (!candidate) throw new Error("candidate not found");
+    const evidence = readJsonl(this.evidencePath).filter(row => row.candidate_id === candidateId);
+    return {
+      schema_version: 1,
+      candidate_id: candidateId,
+      state: candidate.state,
+      hypothesis: candidate.hypothesis,
+      mutation: candidate.mutation,
+      affected_behavior: candidate.mutation?.target || "unknown",
+      validations: candidate.validations,
+      regression_free: candidate.regression_free,
+      evidence: evidence.map(row => ({ at: row.at, state: row.state, digest: stableHash(row.evidence), fixture_id: row.evidence?.fixture_id || null })),
+      tradeoffs: ["A measured improvement may still change tone or timing in contexts outside the fixtures.", "Promotion changes only the bounded target shown above."],
+      approval_ready: candidate.state === "validated" && candidate.validations >= 2 && candidate.regression_free,
+      approval_action: `approve:${candidateId}`,
+      rollback_action: `rollback:${candidateId}`
+    };
+  }
+
   approve(candidateId, { approver = "Cardona", key, note = "" }) {
     const candidate = this.get(candidateId);
     if (!candidate || candidate.state !== "validated" || candidate.validations < 2 || !candidate.regression_free) throw new Error("candidate has not met promotion gates");

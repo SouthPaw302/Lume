@@ -39,3 +39,17 @@ test("ineffective candidates can be rejected and cannot be revived", () => {
   assert.throws(() => engine.transition(candidate.id, "shadow_tested"), /invalid transition/);
   assert.throws(() => engine.approve(candidate.id, { key: "a-development-only-key-long-enough" }), /promotion gates/);
 });
+
+test("approval card exposes evidence, tradeoffs, and rollback before signing", () => {
+  const { engine } = setup();
+  let candidate = engine.propose({ hypothesis: "more patient repair", mutation: { target: "repair_patience", operator: "strengthen", magnitude: 0.1 }, source: { kind: "reflection" } });
+  candidate = engine.transition(candidate.id, "shadow_tested", { fixture_id: "dev-1" });
+  candidate = engine.transition(candidate.id, "exercised", { fixture_id: "hidden-1" });
+  candidate = engine.transition(candidate.id, "validated", { validations: 2, regression_free: true, fixture_id: "future-1" });
+  const card = engine.approvalCard(candidate.id);
+  assert.equal(card.approval_ready, true);
+  assert.equal(card.affected_behavior, "repair_patience");
+  assert.match(card.rollback_action, /^rollback:/);
+  assert.ok(card.evidence.length >= 3);
+  assert.ok(card.tradeoffs.length > 0);
+});

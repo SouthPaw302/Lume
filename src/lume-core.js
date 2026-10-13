@@ -21,6 +21,7 @@ class LumeCore {
   propose_adaptation(hypothesis, mutation, options = {}) { return this.experiments.propose({ hypothesis, mutation, ...options }); }
   run_episode(candidate, fixture, options) { return this.experiments.runEpisode({ candidateId: candidate, fixture, ...options }); }
   evaluate_pair(baseline, candidate, options) { return this.experiments.evaluatePair({ baseline, candidate, ...options }); }
+  build_approval_card(id) { return this.experiments.approvalCard(id); }
   promote_candidate(id, approval) { return this.experiments.promote(id, approval); }
   rollback_candidate(id, reason) { return this.experiments.rollback(id, reason); }
   emit_event(type, task, metadata = {}) { return this.events.emit(type, task, metadata); }
