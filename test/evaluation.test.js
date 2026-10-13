@@ -21,6 +21,10 @@ test("opposed decisive votes aggregate to tie", () => {
   assert.equal(aggregateJudgments([{ choice: "A" }, { choice: "B" }, { choice: "tie" }]).preference, "tie");
 });
 
+test("one preference and two ties remain a tie", () => {
+  assert.equal(aggregateJudgments([{ choice: "B" }, { choice: "tie" }, { choice: "tie" }]).preference, "tie");
+});
+
 test("rejects self evaluation", async () => {
   await assert.rejects(() => evaluatePair({ baseline: { text: "x" }, candidate: { text: "x", producer_id: "same" }, fixture: { id: "f" }, evaluatorId: "same" }), /cannot evaluate itself/);
 });

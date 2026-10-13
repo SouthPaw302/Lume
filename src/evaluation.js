@@ -12,7 +12,8 @@ function normalizeJudgment(value) {
 function aggregateJudgments(values) {
   const votes = values.map(normalizeJudgment);
   const counts = votes.reduce((all, vote) => ({ ...all, [vote.preference]: all[vote.preference] + 1 }), { A: 0, B: 0, tie: 0 });
-  const decisive = counts.A === counts.B ? "tie" : counts.A > counts.B ? "A" : "B";
+  const majority = votes.length / 2;
+  const decisive = counts.A > majority ? "A" : counts.B > majority ? "B" : "tie";
   return {
     preference: decisive,
     rationale: votes.map(vote => vote.rationale).filter(Boolean).join(" | ").slice(0, 2000),
