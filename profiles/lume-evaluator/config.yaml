@@ -1,0 +1,31 @@
+model:
+  default: local
+  provider: custom
+  base_url: http://127.0.0.1:12436/v1
+  streaming: false
+terminal:
+  backend: local
+  cwd: /home/koss/LumeAI
+agent:
+  disabled_toolsets:
+    - web
+    - browser
+    - terminal
+    - file
+    - code_execution
+    - vision
+    - image_gen
+    - tts
+    - stt
+    - skills
+    - todo
+    - memory
+    - session_search
+    - connections
+    - clarify
+    - delegation
+    - cronjob
+    - computer_use
+approvals:
+  mode: manual
+_config_version: 50

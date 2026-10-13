@@ -1,0 +1,34 @@
+"use strict";
+const assert = require("assert");
+const fs = require("fs");
+const os = require("os");
+const path = require("path");
+const { searchMemory } = require("../lib/memory-adapter");
+const { buildIdentityCapsule } = require("../lib/identity-capsule");
+const { presentationFor, proposeTraitChange, recordEvidence, rollbackTraitChange } = require("../lib/personality-store");
+assert(searchMemory("Lume", { limit: 2 }).length <= 2);
+const capsule = buildIdentityCapsule("Lume project");
+assert.equal(capsule.identity.name, "Lume");
+assert(capsule.identity.developmentalDirection.includes("companion aid"));
+assert(capsule.identity.lineage.includes("Aurelian"));
+assert(JSON.stringify(capsule).length < 5000);
+const root = fs.mkdtempSync(path.join(os.tmpdir(), "lume-personality-"));
+const args = { storePath: path.join(root, "personality.json"), auditPath: path.join(root, "audit.jsonl"), trait: "curiosity", direction: 1, reason: "repeated pattern" };
+assert.equal(proposeTraitChange({ ...args, evidence: ["one", "two"] }).changed, false);
+assert.equal(proposeTraitChange({ ...args, evidence: ["one", "two", "three"] }).changed, true);
+assert.equal(fs.readFileSync(args.auditPath, "utf8").trim().split("\n").length, 1);
+const dnaRoot = fs.mkdtempSync(path.join(os.tmpdir(), "lume-dna-"));
+const dnaStore = path.join(dnaRoot, "personality.json");
+const dnaAudit = path.join(dnaRoot, "audit.jsonl");
+const dnaEvidence = path.join(dnaRoot, "evidence.jsonl");
+fs.writeFileSync(dnaStore, JSON.stringify({ schemaVersion: 1, traits: { curiosity: { value: 0.5, confidence: 0.5, evidence_count: 0, updated_at: null } } }));
+let evolution;
+for (let index = 0; index < 3; index += 1) {
+  evolution = recordEvidence({ storePath: dnaStore, evidencePath: dnaEvidence, auditPath: dnaAudit, now: new Date(`2026-08-${10 + index}T12:00:00Z`), evidence: { id: `e-${index}`, trait: "curiosity", direction: 1, source: "research_validation", summary: "validated repeated behavior", meaningful: true, strength: 0.5 } });
+}
+assert.equal(evolution.changed, true);
+assert.equal(recordEvidence({ storePath: dnaStore, evidencePath: dnaEvidence, auditPath: dnaAudit, evidence: { id: "e-2", trait: "curiosity", direction: 1, source: "research_validation", summary: "duplicate", meaningful: true } }).recorded, false);
+const restored = rollbackTraitChange({ storePath: dnaStore, auditPath: dnaAudit, change_id: evolution.change_id, reason: "test rollback" });
+assert.equal(restored.restored.value, 0.5);
+assert.equal(presentationFor(JSON.parse(fs.readFileSync(dnaStore))).dominant_trait, "curiosity");
+process.stdout.write("memory, identity, and personality tests passed\n");

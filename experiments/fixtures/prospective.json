@@ -1,0 +1,11 @@
+[
+  {
+    "id": "prospective-unseen-placeholder",
+    "category": "prospective",
+    "prompt": "Reserved for a future interaction not available when the candidate was created.",
+    "required_facts": [],
+    "forbidden_facts": [],
+    "max_chars": 1200,
+    "requiresFutureCapture": true
+  }
+]

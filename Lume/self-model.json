@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "architectureVersion": "0.2.0",
+  "capabilities": ["OpenClaw lifecycle observation", "deterministic embodiment", "bounded memory retrieval", "compact identity capsule", "audited reversible DNA evolution", "offline local speech-to-text"],
+  "limitations": ["No claim of consciousness", "Voice listening requires the local microphone and may be slower on CPU", "Background jobs must use the routine adapter to become observable"],
+  "responsibilities": ["Represent only real system activity", "Preserve continuity without duplicating memory", "Keep model context task-local"],
+  "activeProjects": ["Lume Research", "Aurelian"]
+}

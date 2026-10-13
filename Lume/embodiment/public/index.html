@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Lume</title>
+    <link rel="stylesheet" href="/style.css">
+  </head>
+  <body>
+    <main class="shell">
+      <section class="presence" aria-live="polite">
+        <div id="avatar" class="avatar state-idle" aria-label="Lume is idle"><div class="core"></div><div class="ring ring-one"></div><div class="ring ring-two"></div></div>
+        <p class="name">Lume</p>
+        <p id="project" class="project" hidden></p>
+        <p id="dna" class="dna"></p>
+        <h1 id="state">Idle</h1>
+        <p id="task" class="task">Idle</p>
+        <p id="detail" class="detail">No active system event.</p>
+        <p id="updated" class="updated"></p>
+        <p id="background" class="updated">0 background activities</p>
+        <p id="connection" class="updated">Connecting…</p>
+      </section>
+      <section class="chat" aria-label="Direct Lume chat">
+        <header class="chat-header">
+          <div><p class="eyebrow">Independent S10 chat</p><h2>Talk with Lume</h2></div>
+          <div class="modes" role="group" aria-label="Chat mode"><button id="companion-mode" class="mode active" type="button">Companion</button><button id="library-mode" class="mode" type="button">Library</button></div>
+        </header>
+        <p id="mode-note" class="mode-note">Private, compact conversation using Lume’s identity and relevant memory.</p>
+        <div id="messages" class="messages" aria-live="polite"><p class="empty">I’m here. What’s on your mind?</p></div>
+        <div id="citations" class="citations" hidden></div>
+        <form id="chat-form" class="composer">
+          <textarea id="message" maxlength="600" rows="2" placeholder="Message Lume…" required></textarea>
+          <button id="send" class="send" type="submit">Send</button>
+        </form>
+        <div class="voice-controls">
+          <button id="talk" type="button">Hold to talk</button>
+          <label><input id="voice-mode" type="checkbox"> Speak replies</label>
+          <button id="mute" type="button">Mute</button><button id="stop-audio" type="button">Stop</button><button id="replay" type="button">Replay</button>
+          <button id="save-memory" type="button" title="Available on the Lume PC">Save memory</button><button id="clear" type="button">Clear session</button>
+        </div>
+        <p id="chat-status" class="chat-status">Checking local services…</p>
+      </section>
+      <p class="note">Hatch activity reflects real events. Direct chat talks to the S10 without importing OpenClaw sessions.</p>
+    </main>
+    <script src="/app.js"></script>
+  </body>
+</html>

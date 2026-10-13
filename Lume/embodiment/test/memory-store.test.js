@@ -1,0 +1,16 @@
+"use strict";
+const assert = require("assert");
+const fs = require("fs");
+const os = require("os");
+const path = require("path");
+const { MemoryStore } = require("../lib/memory-store");
+const file = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "lume-memory-")), "records.jsonl");
+const store = new MemoryStore(file);
+const saved = store.save({ domain: "episode", title: "Built Lume", summary: "Completed the embodiment architecture", importance: 0.9 });
+assert.equal(store.list({ domain: "episode" }).length, 1);
+assert.equal(store.update(saved.id, { summary: "Updated" }).summary, "Updated");
+store.archive(saved.id);
+assert.equal(store.list().length, 0);
+assert.equal(store.list({ includeArchived: true }).length, 1);
+assert.throws(() => store.save({ domain: "unknown" }), /unsupported/);
+process.stdout.write("structured memory tests passed\n");

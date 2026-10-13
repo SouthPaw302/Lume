@@ -1,0 +1,11 @@
+"use strict";
+const assert = require("assert");
+const { buildTaskContext, trim } = require("../lib/context-policy");
+const { digest } = require("../lib/routine-digest");
+assert.throws(() => buildTaskContext({}), /objective/);
+const context = buildTaskContext({ objective: "ship", relevantToolOutput: "x".repeat(9000) });
+assert(context.relevantToolOutput.length < 6100);
+assert(trim("short", 20) === "short");
+assert.equal(digest([{ status: "completed" }]).shouldNotify, false);
+assert.equal(digest([{ status: "failed", id: "x" }]).shouldNotify, true);
+process.stdout.write("context policy tests passed\n");

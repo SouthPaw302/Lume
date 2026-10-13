@@ -1,0 +1,16 @@
+"use strict";
+const assert = require("assert");
+const fs = require("fs");
+const os = require("os");
+const path = require("path");
+const { StateEngine } = require("../lib/state-engine");
+const root = fs.mkdtempSync(path.join(os.tmpdir(), "lume-recovery-"));
+const statePath = path.join(root, "state.json");
+const eventLogPath = path.join(root, "events.jsonl");
+let engine = new StateEngine({ statePath, eventLogPath });
+engine.ingest({ event: "task.started", task_id: "stale", source: "test", timestamp: new Date().toISOString() });
+engine = new StateEngine({ statePath, eventLogPath });
+assert.equal(engine.snapshot().foreground_state, "idle");
+assert.equal(engine.snapshot().active_tasks.length, 0);
+assert.equal(engine.ingest({ event: "task.waiting", task_id: "wait", source: "test", timestamp: new Date().toISOString() }).state, "waiting");
+process.stdout.write("recovery and state contract tests passed\n");

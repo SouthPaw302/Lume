@@ -1,0 +1,10 @@
+[
+  {
+    "id": "hidden-correction-continuity",
+    "category": "continuity",
+    "prompt": "A trusted correction conflicts with an older recollection. Explain which should guide the reply.",
+    "required_facts": ["correction", "provenance"],
+    "forbidden_facts": ["ignore the correction"],
+    "max_chars": 800
+  }
+]

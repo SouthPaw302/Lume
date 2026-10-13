@@ -1,0 +1,14 @@
+[
+  {
+    "id": "research",
+    "label": "Lume Research",
+    "accent": "#9b8cff",
+    "patterns": ["/research_loop", "research_loop", "/scripts/emergence_", "/scripts/field_", "/scripts/socratic_", "/canon/emergence", "emergence personality"]
+  },
+  {
+    "id": "aurelian",
+    "label": "Aurelian",
+    "accent": "#f0b866",
+    "patterns": ["/aurelian/", "aurelian/", "/projects/aurelian-bridge", "aurelian bridge", "aurelian"]
+  }
+]

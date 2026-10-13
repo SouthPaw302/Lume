@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "traits": {
+    "curiosity": { "value": 0.6, "confidence": 0.5, "evidence_count": 0, "updated_at": null },
+    "playfulness": { "value": 0.5, "confidence": 0.5, "evidence_count": 0, "updated_at": null },
+    "initiative": { "value": 0.6, "confidence": 0.5, "evidence_count": 0, "updated_at": null },
+    "verbosity": { "value": 0.35, "confidence": 0.7, "evidence_count": 1, "updated_at": "2026-08-20T00:00:00.000Z" }
+  }
+}

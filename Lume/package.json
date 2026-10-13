@@ -1,0 +1,14 @@
+{
+  "name": "lume-embodiment",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Deterministic visual and voice embodiment layer for OpenClaw",
+  "scripts": {
+    "start": "node embodiment/server.js",
+    "test": "node --test embodiment/test/*.test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {}
+}

@@ -1,0 +1,19 @@
+model:
+  default: local
+  provider: custom
+  base_url: http://192.168.12.82:12435/v1
+  streaming: false
+terminal:
+  backend: local
+  cwd: /home/koss/LumeAI
+agent:
+  disabled_toolsets:
+    - delegation
+    - cronjob
+approvals:
+  mode: manual
+  deny:
+    - "git push*"
+    - "*camera*"
+    - "*continuous*sensing*"
+_config_version: 50

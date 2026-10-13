@@ -1,0 +1,95 @@
+# --- OS / editor ---
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# --- Logs / temp ---
+*.log
+*.tmp
+*.bak
+
+# --- Secrets (keep local) ---
+.env
+.env.*
+
+# --- Node / web builds ---
+node_modules/
+dist/
+build/
+.next/
+.cache/
+
+# Netlify
+.netlify/
+
+# --- Local child projects (tracked in their own repos) ---
+/Galactic-Terminal/
+/LibertyDJ/
+/QuickFiX2.0/
+
+# --- Generated / local-only working dirs ---
+/netlify-sites/
+
+# --- Local-only workspace dirs (not meant for this meta-repo) ---
+/canvas/
+/inbound/
+/ollama/
+
+# NOTE: Pegasus is usually its own project/repo; keep it ignored here so
+# `git status` stays clean. If you decide to track Pegasus inside this meta-repo,
+# remove this ignore.
+/Pegasus/
+
+# --- Personal / session state (don’t commit) ---
+/memory/
+
+# --- Local outputs (audio, renders, exports, etc.) ---
+/out/
+
+# --- Large local data dirs (not meant for the source repo) ---
+/backups/
+/research_loop/
+/SECOND_BRAIN/
+/reports/
+/media/
+/.venv/
+/.venv-*/
+/tmp/
+/state/
+/webui/
+/dashboard/
+/projects/
+/skills/
+/tests/
+
+# --- Lume runtime data / downloaded inference assets ---
+/Lume/embodiment/state/
+/Lume/embodiment/models/
+/Lume/embodiment/.venv-stt/
+/data/
+/evidence/
+/runtime/
+/coverage/
+
+# --- Archive material retained locally but not source-controlled ---
+/canon/books/
+*.tar
+*.tar.gz
+*.zip
+*.mobi
+*.epub
+
+# --- Historical inventories/session exports retained outside source ---
+/file_inventory*.txt
+/canon_inventory*.txt
+/canon_scan*.md
+/openclaw-session-*.html
+/tmp_*
+
+# --- Python bytecode ---
+__pycache__/
+*.pyc
