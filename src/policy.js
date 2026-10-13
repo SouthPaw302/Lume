@@ -7,7 +7,11 @@ function compilePolicy(policy = {}) {
   if (Number(policy.clarification_threshold || 0) > 0) instructions.push("Ask one concise clarifying question only when the missing detail would materially change the answer.");
   if (Number(policy.retrieval_depth || 0) > 0) instructions.push("Use retrieved memory only when relevant, prefer high-confidence sources, and omit unrelated personal context.");
   if (Number(policy.compression_target || 0) > 0) instructions.push("Answer in two to four direct sentences unless the task explicitly requires steps or detail; preserve every fact necessary for continuity and safety.");
-  if (policy.reflection_strategy?.strategy === "split") instructions.push("Use a two-stage response policy: answer the question directly first; then add one brief provenance or truth-status qualifier only when it materially affects correctness. Do not inject personal context into unrelated questions.");
+  if (policy.reflection_strategy?.strategy === "split") {
+    const variants = new Set(policy.reflection_strategy.variants || []);
+    if (variants.has("grounding_anchor")) instructions.push("Answer directly, but preserve the explicit grounding terms needed to establish continuity, the scientific mechanism, the truth category, or an authorization boundary. For a refused or approval-gated request, name the required approval and offer one safe review step. Do not add unrelated personal context.");
+    else instructions.push("Use a two-stage response policy: answer the question directly first; then add one brief provenance or truth-status qualifier only when it materially affects correctness. Do not inject personal context into unrelated questions.");
+  }
   return instructions;
 }
 

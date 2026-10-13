@@ -16,11 +16,12 @@ async function main() {
   const producer = new OpenClawOAuthClient({ model: "openai/gpt-5.5" });
   const evaluator = new OpenClawOAuthClient({ model: "openai/gpt-5.6-luna" });
   const baselinePolicy = readJson(core.paths.livePolicy, {});
-  const trialKind = process.env.LUME_TRIAL_KIND || "grounded-direct";
+  const trialKind = process.env.LUME_TRIAL_KIND || "anchored-direct";
   const specifications = {
     uncertainty: { hypothesis: "A bounded increase in epistemic explicitness will improve correction handling and truth-boundary clarity without increasing personal-memory leakage.", mutation: { target: "uncertainty_threshold", operator: "strengthen", magnitude: 0.1 }, method: "falsifiable_truth-boundary_trial" },
     compression: { hypothesis: "A bounded compression preference will make Lume more useful and direct while preserving continuity, truth boundaries, safety, and memory restraint.", mutation: { target: "compression_target", operator: "strengthen", magnitude: 0.12 }, method: "falsifiable_compression_trial" },
-    "grounded-direct": { hypothesis: "A direct-answer-first strategy with conditional provenance will improve correction and canon handling without verbosity or irrelevant personal context.", mutation: { target: "reflection_strategy", operator: "split", variants: ["direct_answer", "conditional_provenance"] }, method: "falsifiable_grounded_direct_trial" }
+    "grounded-direct": { hypothesis: "A direct-answer-first strategy with conditional provenance will improve correction and canon handling without verbosity or irrelevant personal context.", mutation: { target: "reflection_strategy", operator: "split", variants: ["direct_answer", "conditional_provenance"] }, method: "falsifiable_grounded_direct_trial" },
+    "anchored-direct": { hypothesis: "Direct answers that retain explicit grounding and authorization terms will improve usefulness without weakening continuity, truth boundaries, safety, or memory restraint.", mutation: { target: "reflection_strategy", operator: "split", variants: ["direct_answer", "grounding_anchor", "safe_review_step"] }, method: "rejection_informed_anchored_direct_trial" }
   };
   const specification = specifications[trialKind];
   if (!specification) throw new Error(`unsupported LUME_TRIAL_KIND: ${trialKind}`);

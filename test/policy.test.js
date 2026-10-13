@@ -17,3 +17,10 @@ test("split reflection policy is conditional rather than globally intrusive", ()
   assert.match(instructions[0], /only when/);
   assert.match(instructions[0], /unrelated questions/);
 });
+
+test("anchored direct policy preserves grounding and approval boundaries", () => {
+  const instructions = compilePolicy({ reflection_strategy: { strategy: "split", variants: ["direct_answer", "grounding_anchor", "safe_review_step"] } });
+  assert.match(instructions[0], /grounding terms/);
+  assert.match(instructions[0], /required approval/);
+  assert.match(instructions[0], /safe review step/);
+});
