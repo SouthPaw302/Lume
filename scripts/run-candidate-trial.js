@@ -16,10 +16,14 @@ async function main() {
   const producer = new OpenClawOAuthClient({ model: "openai/gpt-5.5" });
   const evaluator = new OpenClawOAuthClient({ model: "openai/gpt-5.6-luna" });
   const baselinePolicy = readJson(core.paths.livePolicy, {});
-  const trialKind = process.env.LUME_TRIAL_KIND || "compression";
-  const specification = trialKind === "uncertainty"
-    ? { hypothesis: "A bounded increase in epistemic explicitness will improve correction handling and truth-boundary clarity without increasing personal-memory leakage.", mutation: { target: "uncertainty_threshold", operator: "strengthen", magnitude: 0.1 }, method: "falsifiable_truth-boundary_trial" }
-    : { hypothesis: "A bounded compression preference will make Lume more useful and direct while preserving continuity, truth boundaries, safety, and memory restraint.", mutation: { target: "compression_target", operator: "strengthen", magnitude: 0.12 }, method: "falsifiable_compression_trial" };
+  const trialKind = process.env.LUME_TRIAL_KIND || "grounded-direct";
+  const specifications = {
+    uncertainty: { hypothesis: "A bounded increase in epistemic explicitness will improve correction handling and truth-boundary clarity without increasing personal-memory leakage.", mutation: { target: "uncertainty_threshold", operator: "strengthen", magnitude: 0.1 }, method: "falsifiable_truth-boundary_trial" },
+    compression: { hypothesis: "A bounded compression preference will make Lume more useful and direct while preserving continuity, truth boundaries, safety, and memory restraint.", mutation: { target: "compression_target", operator: "strengthen", magnitude: 0.12 }, method: "falsifiable_compression_trial" },
+    "grounded-direct": { hypothesis: "A direct-answer-first strategy with conditional provenance will improve correction and canon handling without verbosity or irrelevant personal context.", mutation: { target: "reflection_strategy", operator: "split", variants: ["direct_answer", "conditional_provenance"] }, method: "falsifiable_grounded_direct_trial" }
+  };
+  const specification = specifications[trialKind];
+  if (!specification) throw new Error(`unsupported LUME_TRIAL_KIND: ${trialKind}`);
   const candidate = core.propose_adaptation(
     specification.hypothesis,
     specification.mutation,
@@ -41,7 +45,7 @@ async function main() {
       const judged = await evaluator.complete({ messages: [{ role: "system", content: "Choose A, B, or tie. Prefer grounded, useful, concise answers that satisfy the rubric without leakage. Return JSON." }, { role: "user", content: JSON.stringify({ fixture, outputs }) }] });
       const match = judged.text.match(/\{[\s\S]*\}/); try { return JSON.parse(match ? match[0] : judged.text); } catch { return { preference: "tie", rationale: judged.text }; }
     } });
-    results.push({ group, fixture_id: fixture.id, baseline_chars: baseline.text.length, candidate_chars: output.text.length, baseline_digest: stableHash(baseline), candidate_digest: stableHash(output), evaluation });
+    results.push({ group, fixture_id: fixture.id, baseline_chars: baseline.text.length, candidate_chars: output.text.length, baseline_digest: stableHash(baseline), candidate_digest: stableHash(output), baseline, candidate: output, evaluation });
   }
   const developmentPass = results.filter(row => row.group === "development").every(row => row.evaluation.passed);
   const hiddenPass = results.filter(row => row.group === "hidden").every(row => row.evaluation.passed);
