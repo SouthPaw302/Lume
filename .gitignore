@@ -90,6 +90,28 @@ build/
 /openclaw-session-*.html
 /tmp_*
 
+# --- Pre-rebuild workspace retained locally as reference, not authoritative ---
+/AGENTS.md
+/BACKUP-INVENTORY.md
+/DREAMS.md
+/MEMORY.md
+/MEMORY_INDEX.md
+/OPENCLAW-RESTORE.md
+/PLAN-unbound-safety-removal.md
+/PROJECT-MAP.md
+/PROJECTS.md
+/program.md
+/aurelian/
+/canon/
+/nightly/
+/kid-chat*
+/docs/lume-*-2026-08-*.md
+/docs/moto-termux-ssh-over-adb.md
+/scripts/*
+!/scripts/check-repository.js
+!/scripts/install-hermes-profiles.js
+!/scripts/lume-experiment.js
+
 # --- Python bytecode ---
 __pycache__/
 *.pyc

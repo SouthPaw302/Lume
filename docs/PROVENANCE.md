@@ -19,3 +19,8 @@ Recovery archives and SHA-256 sidecars are stored privately under
 
 Historical reports and transcripts remain external evidence. They are not
 treated as validated adaptations merely because they exist.
+
+Pre-rebuild root notes, legacy automation, canon, nightly output, Kid Chat,
+Aurelian, and device scripts remain present locally and in the recovery archive,
+but are ignored by the authoritative Git baseline. A subsystem must be imported
+deliberately and recorded here before it becomes LumeAI source.
