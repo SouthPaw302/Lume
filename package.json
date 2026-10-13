@@ -10,6 +10,8 @@
     "test:embodiment": "npm --prefix Lume test",
     "check:repo": "node scripts/check-repository.js",
     "experiment:demo": "node scripts/lume-experiment.js",
+    "replay": "node scripts/run-replay.js",
+    "fixtures:import-history": "node scripts/import-historical-replays.js",
     "profiles:install": "node scripts/install-hermes-profiles.js"
   },
   "engines": {

@@ -24,3 +24,14 @@ signature, and a reversible snapshot of the live policy.
 OpenClaw remains available as the live fallback. Hermes profiles run against
 the same capsule, tools, model routes, and fixtures. Telegram is not moved until
 Hermes passes continuity, tool-policy, recovery, and regression gates.
+
+## Replay and recovery
+
+`src/replay.js` constructs the canonical envelope shared by both harness
+adapters. `src/model-client.js` attempts declared endpoints in order, records
+which body answered, and fails closed when all are unavailable. Replay output,
+including blocked-run diagnostics, belongs under external `LUME_DATA_DIR`.
+
+Historical fixtures are sampled from local OpenClaw transcripts into a private
+external file. They retain hashed source provenance, redact credential-shaped
+content, exclude scheduled cron chatter, and are never admitted to Git.

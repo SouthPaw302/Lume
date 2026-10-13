@@ -111,6 +111,8 @@ build/
 !/scripts/check-repository.js
 !/scripts/install-hermes-profiles.js
 !/scripts/lume-experiment.js
+!/scripts/run-replay.js
+!/scripts/import-historical-replays.js
 
 # --- Python bytecode ---
 __pycache__/

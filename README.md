@@ -30,7 +30,15 @@ npm test
 npm run check:repo
 npm run experiment:demo
 npm run profiles:install
+npm run fixtures:import-history
+npm run replay
 ```
+
+`fixtures:import-history` creates a private, mode-0600 historical set under the
+external data directory. `replay` sends identical tool-free envelopes to the
+baseline and candidate, uses the independent evaluator route, and stores its
+report outside Git. An unavailable model runtime produces a blocked audit
+record and never counts as evidence.
 
 OpenClaw remains the migration baseline. Hermes is the target harness, but both
 consume the same core interfaces and neither owns Lume.

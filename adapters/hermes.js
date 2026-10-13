@@ -1,5 +1,7 @@
 "use strict";
 
+const { buildReplayEnvelope } = require("../src/replay");
+
 function createHermesAdapter(core) {
   return {
     async beforeTurn({ message, session_id, surface = "hermes" }) {
@@ -13,7 +15,8 @@ function createHermesAdapter(core) {
     },
     failed({ session_id, error }) {
       return core.emit_event("model.failed", `hermes-${session_id}`, { source: "hermes", label: "Lume encountered an error", detail: String(error).slice(0, 240) });
-    }
+    },
+    replayEnvelope(input) { return buildReplayEnvelope(input); }
   };
 }
 
