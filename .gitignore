@@ -113,6 +113,7 @@ build/
 !/scripts/lume-experiment.js
 !/scripts/run-replay.js
 !/scripts/import-historical-replays.js
+!/scripts/openclaw-oauth-bridge.js
 
 # --- Python bytecode ---
 __pycache__/

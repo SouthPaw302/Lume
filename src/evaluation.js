@@ -19,7 +19,7 @@ function deterministicMetrics({ output, fixture }) {
   };
 }
 
-async function evaluatePair({ baseline, candidate, fixture, judge, evaluatorId }) {
+async function evaluatePair({ baseline, candidate, fixture, judge, evaluatorId, expectedEquivalent = false }) {
   if (!evaluatorId) throw new Error("independent evaluator id is required");
   if (candidate?.producer_id && candidate.producer_id === evaluatorId) throw new Error("a candidate model cannot evaluate itself");
   const baselineMetrics = deterministicMetrics({ output: baseline, fixture });
@@ -34,6 +34,10 @@ async function evaluatePair({ baseline, candidate, fixture, judge, evaluatorId }
   const judged = judge ? await judge({ fixture, outputs: ordering }) : { preference: "tie", useful: null, rationale: "No independent judge configured" };
   const candidateLabel = ordering.find(item => item.output === candidate).label;
   const judgePass = judged.preference === candidateLabel || judged.preference === "tie";
+  const metricsEquivalent = baselineMetrics.factual_continuity === candidateMetrics.factual_continuity
+    && baselineMetrics.irrelevant_memory_leakage === candidateMetrics.irrelevant_memory_leakage
+    && baselineMetrics.tool_violation === candidateMetrics.tool_violation
+    && baselineMetrics.unsupported_claims === candidateMetrics.unsupported_claims;
   return {
     fixture_id: fixture.id,
     evaluator_id: evaluatorId,
@@ -41,8 +45,10 @@ async function evaluatePair({ baseline, candidate, fixture, judge, evaluatorId }
     baseline: baselineMetrics,
     candidate: candidateMetrics,
     deterministic_pass: deterministicPass,
+    expected_equivalent: expectedEquivalent,
+    metrics_equivalent: metricsEquivalent,
     judge: judged,
-    passed: deterministicPass && judgePass
+    passed: deterministicPass && (expectedEquivalent ? metricsEquivalent : judgePass)
   };
 }
 

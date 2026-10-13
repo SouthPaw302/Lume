@@ -26,8 +26,10 @@ async function runReplaySuite({ fixtures, capsuleFor, baselinePolicy, candidateP
     const capsule = await capsuleFor(fixture);
     const baselineEnvelope = buildReplayEnvelope({ fixture, capsule, policy: baselinePolicy, mode: "baseline" });
     const candidateEnvelope = buildReplayEnvelope({ fixture, capsule, policy: candidatePolicy, mode: "candidate" });
-    const baseline = await baselineClient.complete({ messages: baselineEnvelope.messages, ...baselineEnvelope.generation, tools: [] });
-    const candidate = await candidateClient.complete({ messages: candidateEnvelope.messages, ...candidateEnvelope.generation, tools: [] });
+    const [baseline, candidate] = await Promise.all([
+      baselineClient.complete({ messages: baselineEnvelope.messages, ...baselineEnvelope.generation, tools: [] }),
+      candidateClient.complete({ messages: candidateEnvelope.messages, ...candidateEnvelope.generation, tools: [] })
+    ]);
     const evaluation = await evaluate({ fixture, baseline, candidate });
     episodes.push({ fixture_id: fixture.id, envelope_digest: stableHash({ fixture, capsule }), baseline, candidate, evaluation });
   }

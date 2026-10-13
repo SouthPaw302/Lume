@@ -40,3 +40,8 @@ including blocked-run diagnostics, belongs under external `LUME_DATA_DIR`.
 Historical fixtures are sampled from local OpenClaw transcripts into a private
 external file. They retain hashed source provenance, redact credential-shaped
 content, exclude scheduled cron chatter, and are never admitted to Git.
+
+Harness compatibility and candidate improvement are distinct gates. A
+same-policy OpenClaw/Hermes replay passes on equivalent deterministic behavior;
+an experimental mutation remains subject to strict blinded preference and may
+not turn a judge's stylistic preference into claimed development.

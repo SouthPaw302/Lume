@@ -40,5 +40,22 @@ baseline and candidate, uses the independent evaluator route, and stores its
 report outside Git. An unavailable model runtime produces a blocked audit
 record and never counts as evidence.
 
+By default, replay uses OpenClaw's stored OpenAI OAuth profile through its
+one-shot inference surface. OAuth remains owned and refreshed by OpenClaw; Lume
+never reads or copies tokens. Set `LUME_MODEL_BACKEND=local` to exercise the
+phone endpoint route instead.
+
+Use `LUME_REPLAY_SET=development LUME_REPLAY_LIMIT=1 npm run replay` for a
+bounded OAuth smoke run before executing the complete fixture suite.
+
+`npm run oauth:bridge` exposes that same stored-OAuth inference on loopback at
+`127.0.0.1:12437`. Hermes profiles use this endpoint. The bridge accepts only
+the allowlisted companion and evaluator models, refuses tools, and never reads
+or returns OAuth token material.
+
+The initial Hermes live profile is deliberately inference-only. Lume tools and
+memory continue through the audited core boundary rather than being handed to
+the OAuth bridge as unrestricted model tools.
+
 OpenClaw remains the migration baseline. Hermes is the target harness, but both
 consume the same core interfaces and neither owns Lume.

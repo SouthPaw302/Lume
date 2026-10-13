@@ -1,0 +1,19 @@
+[Unit]
+Description=Lume loopback bridge to OpenClaw-owned OpenAI OAuth
+After=openclaw-gateway.service
+Requires=openclaw-gateway.service
+
+[Service]
+Type=simple
+WorkingDirectory=/home/koss/LumeAI
+ExecStart=/usr/bin/node /home/koss/LumeAI/scripts/openclaw-oauth-bridge.js
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/koss/.openclaw /home/koss/.local/share/lumeai /home/koss/.cache
+
+[Install]
+WantedBy=default.target

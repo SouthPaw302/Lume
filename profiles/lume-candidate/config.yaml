@@ -1,7 +1,7 @@
 model:
-  default: local
+  default: openai/gpt-5.5
   provider: custom
-  base_url: http://192.168.12.82:12435/v1
+  base_url: http://127.0.0.1:12437/v1
   streaming: false
 terminal:
   backend: local

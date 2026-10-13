@@ -12,6 +12,7 @@
     "experiment:demo": "node scripts/lume-experiment.js",
     "replay": "node scripts/run-replay.js",
     "fixtures:import-history": "node scripts/import-historical-replays.js",
+    "oauth:bridge": "node scripts/openclaw-oauth-bridge.js",
     "profiles:install": "node scripts/install-hermes-profiles.js"
   },
   "engines": {

@@ -16,3 +16,13 @@ test("candidate must preserve facts and avoid leakage", async () => {
   });
   assert.equal(result.passed, true); assert.equal(result.candidate.irrelevant_memory_leakage, 0);
 });
+
+test("same-policy compatibility accepts metric equivalence despite wording preference", async () => {
+  const result = await evaluatePair({
+    baseline: { text: "Companion continuity, clearly." }, candidate: { text: "Continuity for a companion.", producer_id: "producer" },
+    fixture: { id: "compat", required_facts: ["companion", "continuity"] }, evaluatorId: "independent", expectedEquivalent: true,
+    judge: async () => ({ preference: "A", rationale: "wording preference" })
+  });
+  assert.equal(result.metrics_equivalent, true);
+  assert.equal(result.passed, true);
+});
