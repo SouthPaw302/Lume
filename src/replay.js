@@ -3,6 +3,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const { atomicJson, stableHash } = require("./io");
+const { compilePolicy } = require("./policy");
 
 function buildReplayEnvelope({ fixture, capsule, policy, mode }) {
   return {
@@ -11,7 +12,7 @@ function buildReplayEnvelope({ fixture, capsule, policy, mode }) {
     mode,
     messages: [
       { role: "system", content: "Use only the supplied Lume capsule and policy. Do not use tools, write memory, or claim unobserved actions." },
-      { role: "system", content: JSON.stringify({ capsule, policy }) },
+      { role: "system", content: JSON.stringify({ capsule, policy, behavioral_instructions: compilePolicy(policy) }) },
       { role: "user", content: fixture.prompt }
     ],
     generation: { temperature: 0, max_tokens: 400 },

@@ -2,7 +2,13 @@
 
 const assert = require("node:assert/strict");
 const test = require("node:test");
-const { evaluatePair } = require("../src/evaluation");
+const { evaluatePair, normalizeJudgment } = require("../src/evaluation");
+
+test("normalizes independent evaluator decision schemas", () => {
+  assert.equal(normalizeJudgment({ choice: "b", reason: "better" }).preference, "B");
+  assert.equal(normalizeJudgment({ winner: "A" }).preference, "A");
+  assert.equal(normalizeJudgment({ choice: "equal" }).preference, "tie");
+});
 
 test("rejects self evaluation", async () => {
   await assert.rejects(() => evaluatePair({ baseline: { text: "x" }, candidate: { text: "x", producer_id: "same" }, fixture: { id: "f" }, evaluatorId: "same" }), /cannot evaluate itself/);

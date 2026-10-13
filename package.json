@@ -13,6 +13,7 @@
     "replay": "node scripts/run-replay.js",
     "fixtures:import-history": "node scripts/import-historical-replays.js",
     "oauth:bridge": "node scripts/openclaw-oauth-bridge.js",
+    "experiment:trial": "node scripts/run-candidate-trial.js",
     "profiles:install": "node scripts/install-hermes-profiles.js"
   },
   "engines": {

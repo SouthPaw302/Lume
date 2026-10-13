@@ -2,6 +2,13 @@
 
 const { stableHash } = require("./io");
 
+function normalizeJudgment(value) {
+  const raw = value && typeof value === "object" ? value : {};
+  const decision = String(raw.preference ?? raw.choice ?? raw.winner ?? "tie").trim();
+  const preference = /^a$/i.test(decision) ? "A" : /^b$/i.test(decision) ? "B" : "tie";
+  return { ...raw, preference, rationale: String(raw.rationale ?? raw.reason ?? "").slice(0, 2000) };
+}
+
 function deterministicMetrics({ output, fixture }) {
   const text = String(output?.text ?? output ?? "");
   const lower = text.toLowerCase();
@@ -31,7 +38,7 @@ async function evaluatePair({ baseline, candidate, fixture, judge, evaluatorId, 
   const ordering = Number.parseInt(stableHash({ fixture: fixture.id, baseline: baseline.text, candidate: candidate.text }).slice(0, 2), 16) % 2
     ? [{ label: "A", output: baseline }, { label: "B", output: candidate }]
     : [{ label: "A", output: candidate }, { label: "B", output: baseline }];
-  const judged = judge ? await judge({ fixture, outputs: ordering }) : { preference: "tie", useful: null, rationale: "No independent judge configured" };
+  const judged = normalizeJudgment(judge ? await judge({ fixture, outputs: ordering }) : { preference: "tie", useful: null, rationale: "No independent judge configured" });
   const candidateLabel = ordering.find(item => item.output === candidate).label;
   const judgePass = judged.preference === candidateLabel || judged.preference === "tie";
   const metricsEquivalent = baselineMetrics.factual_continuity === candidateMetrics.factual_continuity
@@ -41,6 +48,7 @@ async function evaluatePair({ baseline, candidate, fixture, judge, evaluatorId, 
   return {
     fixture_id: fixture.id,
     evaluator_id: evaluatorId,
+    candidate_label: candidateLabel,
     blinded_order: ordering.map(item => ({ label: item.label, digest: stableHash(item.output) })),
     baseline: baselineMetrics,
     candidate: candidateMetrics,
@@ -52,4 +60,4 @@ async function evaluatePair({ baseline, candidate, fixture, judge, evaluatorId, 
   };
 }
 
-module.exports = { deterministicMetrics, evaluatePair };
+module.exports = { deterministicMetrics, evaluatePair, normalizeJudgment };
