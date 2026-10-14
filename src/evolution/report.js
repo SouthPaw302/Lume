@@ -10,6 +10,8 @@ function buildReport(state = {}, now = new Date()) {
     neutral: population.filter(item => item.status === "neutral").map(item => item.id),
     rejected: population.filter(item => item.status === "rejected").map(item => item.id),
     actual_changes: state.canary ? [{ candidate: state.canary.candidate_id, status: state.canary.status, before_digest: state.canary.before_digest, after_digest: state.canary.after_digest }] : [],
+    canary_decision: state.canary_decision || null,
+    canary_queue_depth: (state.canary_queue || []).length,
     proposed_changes: population.map(item => ({ candidate: item.id, mutation: item.expressed?.mutation })),
     next_questions: ["Do survivors transfer to unseen seeds?", "Does the local canary preserve continuity over time?"]
   };
@@ -21,6 +23,8 @@ function asTelegram(report) {
   if (change) lines.push(`Local canary ${change.candidate}: ${change.status}. This is the only applied experimental change.`);
   else lines.push("No experimental change is currently applied.");
   if (report.rejected.length) lines.push(`Rejected: ${report.rejected.join(", ")}.`);
+  if (report.canary_decision?.ready) lines.push(`Canary decision for ${report.canary_decision.candidate_id}: ${report.canary_decision.outcome} — ${report.canary_decision.reason}.`);
+  lines.push(`Canary queue: ${report.canary_queue_depth}.`);
   lines.push(`Next test: ${report.next_questions[0]}`);
   lines.push("OpenAI narration was not required; this report is generated from the verified ledger.");
   return lines.join("\n");

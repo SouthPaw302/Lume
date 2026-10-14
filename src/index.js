@@ -6,7 +6,7 @@ module.exports = {
   evolution: {
     ...require("./evolution/contracts"), ...require("./evolution/fitness"),
     ...require("./evolution/compiler"), ...require("./evolution/provenance"),
-    ...require("./evolution/canary")
+    ...require("./evolution/canary"), ...require("./evolution/canary-evaluator")
   },
   brainfuck: require("./experiments/brainfuck"), snake: require("./experiments/snake"),
   automata: require("./experiments/automata"), field: require("./experiments/field"), reflection: require("./experiments/reflection")

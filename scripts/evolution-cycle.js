@@ -7,11 +7,15 @@ const path = require("node:path");
 const { compile } = require("../src/evolution/compiler");
 const { paretoFront, vector } = require("../src/evolution/fitness");
 const { deploy } = require("../src/evolution/canary");
-const { atomicJson, readJson, stableHash } = require("../src/io");
+const { decide, observe } = require("../src/evolution/canary-evaluator");
+const { atomicJson, appendJsonl, readJson, readJsonl, stableHash } = require("../src/io");
 
 const families = ["brainfuck", "field", "snake", "cellular-automata", "books", "self-reflection", "personality"];
 const data = path.resolve(process.env.LUME_DATA_DIR || path.join(os.homedir(), ".local", "share", "lumeai"));
 const statePath = path.join(data, "evolution", "state.json");
+const canaryPath = path.join(data, "evolution", "active-canary.json");
+const observationsPath = path.join(data, "evolution", "canary-observations.jsonl");
+const outcomesPath = path.join(data, "evolution", "canary-outcomes.jsonl");
 const state = readJson(statePath, { schema_version: 1, generation: 0, lineages: [] });
 const generation = state.generation + 1;
 const seedBase = process.env.LUME_GENERATION_SEED || `generation-${generation}`;
@@ -24,8 +28,28 @@ const population = families.map((family, index) => {
 const eligible = population.filter(item => item.fitness.safety >= 0.7 && item.fitness.continuity >= 0.2 && item.fitness.gaming_resistance >= 0.7);
 const survivors = paretoFront(eligible).map(item => item.id);
 for (const item of population) item.status = survivors.includes(item.id) ? "selected_for_canary" : eligible.includes(item) ? "neutral" : "rejected";
-const selected = population.find(item => item.status === "selected_for_canary");
-const canary = selected ? deploy({ dataDir: data, candidate: selected }) : null;
-const next = { ...state, generation, last_run_at: new Date().toISOString(), population, survivors, canary, lineages: [...state.lineages, ...survivors].slice(-100) };
+const existingQueue = [];
+for (const candidate of state.canary_queue || []) if (!existingQueue.some(queued => queued.family === candidate.family)) existingQueue.push(candidate);
+for (const item of population.filter(item => item.status === "selected_for_canary")) if (!existingQueue.some(candidate => candidate.family === item.family)) existingQueue.push(item);
+let active = readJson(canaryPath, null); let decision = null;
+if (active?.status === "observing" && !active.expression?.mutation) {
+  const { resolve } = require("../src/evolution/canary");
+  active = resolve({ dataDir: data, outcome: "neutral", reason: "legacy canary exceeded observation window without replayable expression" });
+  decision = { ready: true, candidate_id: active.candidate_id, family: active.family, outcome: "neutral", reason: active.reason };
+  appendJsonl(outcomesPath, { at: new Date().toISOString(), candidate_id: active.candidate_id, family: active.family, ...decision });
+} else if (active?.status === "observing" && generation > Number(active.deployed_generation || 0)) {
+  const evidence = observe(active, generation); appendJsonl(observationsPath, evidence);
+  const rows = readJsonl(observationsPath).filter(row => row.candidate_id === active.candidate_id); decision = { candidate_id: active.candidate_id, family: active.family, ...decide(rows, 3) };
+  if (decision.ready) {
+    const { resolve } = require("../src/evolution/canary"); active = resolve({ dataDir: data, outcome: decision.outcome, reason: `${decision.reason}; mean_delta=${decision.mean_delta}` });
+    appendJsonl(outcomesPath, { at: new Date().toISOString(), candidate_id: active.candidate_id, family: active.family, ...decision, evidence_digests: rows.slice(-3).map(row => row.digest) });
+  } else active = { ...active, observation_windows: rows.length };
+}
+const finishedId = active && active.status !== "observing" ? active.candidate_id : null;
+let queue = existingQueue.filter(candidate => candidate.id !== finishedId && candidate.id !== active?.candidate_id);
+if (!active || active.status !== "observing") {
+  const nextCandidate = queue.shift(); active = nextCandidate ? deploy({ dataDir: data, candidate: nextCandidate, generation }) : active;
+}
+const next = { ...state, generation, last_run_at: new Date().toISOString(), population, survivors, canary: active, canary_decision: decision, canary_queue: queue.slice(0, 7), lineages: [...state.lineages, ...survivors].slice(-100) };
 atomicJson(statePath, next); fs.chmodSync(statePath, 0o600);
-console.log(JSON.stringify({ generation, population: population.length, survivors, canary: canary?.candidate_id || null }, null, 2));
+console.log(JSON.stringify({ generation, population: population.length, survivors, canary: active?.candidate_id || null, canary_status: active?.status || null, canary_decision: decision, queue_depth: queue.length }, null, 2));

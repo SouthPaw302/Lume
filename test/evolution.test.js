@@ -11,6 +11,7 @@ const { dominates, paretoFront } = require("../src/evolution/fitness");
 const { inventory } = require("../src/evolution/provenance");
 const { applyMutation, deploy, resolve } = require("../src/evolution/canary");
 const { asTelegram, buildReport } = require("../src/evolution/report");
+const { decide, observe } = require("../src/evolution/canary-evaluator");
 
 test("all seven experiment families compile to replayable executable mutations", () => {
   const families = ["brainfuck", "field", "snake", "cellular-automata", "books", "self-reflection", "personality"];
@@ -62,4 +63,12 @@ test("generation-one expressed lineage remains candidate-only", () => {
 test("Telegram report distinguishes applied changes from proposals", () => {
   const report = buildReport({ generation: 2, survivors: ["candidate"], population: [{ id: "candidate", family: "field", status: "selected_for_canary" }], canary: { candidate_id: "older", status: "observing", before_digest: "a", after_digest: "b" } }, new Date("2026-10-14T00:00:00Z"));
   const text = asTelegram(report); assert.match(text, /only applied experimental change/); assert.match(text, /generation 2/); assert.doesNotMatch(text, /candidate: observing/);
+});
+
+test("canary evaluator waits three windows and then makes a reversible decision", () => {
+  const canary = { candidate_id: "g1-books", deployed_generation: 1, expression: { mutation: { target: "hermes_skills", operation: "add_expiring_strategy", value: {} } } };
+  const rows = [2, 3, 4].map(generation => observe(canary, generation));
+  assert.equal(decide(rows.slice(0, 2)).ready, false);
+  const final = decide(rows); assert.equal(final.ready, true); assert.ok(["retain", "neutral", "rollback"].includes(final.outcome));
+  assert.ok(rows.every(row => row.evidence_kind === "deterministic_transfer_proxy"));
 });
