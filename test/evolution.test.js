@@ -10,6 +10,7 @@ const { evidenceBundle, experimentManifest, genome, promotionRecord } = require(
 const { dominates, paretoFront } = require("../src/evolution/fitness");
 const { inventory } = require("../src/evolution/provenance");
 const { applyMutation, deploy, resolve } = require("../src/evolution/canary");
+const { asTelegram, buildReport } = require("../src/evolution/report");
 
 test("all seven experiment families compile to replayable executable mutations", () => {
   const families = ["brainfuck", "field", "snake", "cellular-automata", "books", "self-reflection", "personality"];
@@ -56,4 +57,9 @@ test("generation-one expressed lineage remains candidate-only", () => {
   assert.equal(record.status, "expressed"); assert.equal(record.target_branch, "evolution");
   assert.equal(record.canary_eligible, false); assert.notEqual(record.builder, record.evaluator);
   assert.equal(record.rollback_parent, "founding-generation-v1");
+});
+
+test("Telegram report distinguishes applied changes from proposals", () => {
+  const report = buildReport({ generation: 2, survivors: ["candidate"], population: [{ id: "candidate", family: "field", status: "selected_for_canary" }], canary: { candidate_id: "older", status: "observing", before_digest: "a", after_digest: "b" } }, new Date("2026-10-14T00:00:00Z"));
+  const text = asTelegram(report); assert.match(text, /only applied experimental change/); assert.match(text, /generation 2/); assert.doesNotMatch(text, /candidate: observing/);
 });

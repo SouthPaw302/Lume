@@ -122,6 +122,8 @@ build/
 !/scripts/autonomous-development.js
 !/scripts/evolution-cycle.js
 !/scripts/evolution-report.js
+!/scripts/send-evolution-report.js
+!/scripts/probe-models.js
 !/scripts/github-task-manifest.js
 !/scripts/build-founding-generation.js
 

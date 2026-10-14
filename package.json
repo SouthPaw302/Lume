@@ -23,6 +23,8 @@
     "evolution:cycle": "node scripts/evolution-cycle.js",
     "evolution:founding": "node scripts/build-founding-generation.js",
     "evolution:report": "node scripts/evolution-report.js",
+    "evolution:report:send": "node scripts/send-evolution-report.js",
+    "models:probe": "node scripts/probe-models.js",
     "evolution:manifest": "node scripts/github-task-manifest.js"
   },
   "engines": {
