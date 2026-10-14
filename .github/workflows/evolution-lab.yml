@@ -35,7 +35,9 @@ jobs:
         run: echo "value=${{ inputs.generation || github.run_number }}" >> "$GITHUB_OUTPUT"
       - run: npm run evolution:founding
       - uses: actions/upload-artifact@v4
-        with: { name: founding-generation-${{ github.run_id }}, path: provenance/founding-generation.json }
+        with:
+          name: founding-generation-${{ github.run_id }}
+          path: provenance/founding-generation.json
 
   experiment-populations:
     needs: population-generate
