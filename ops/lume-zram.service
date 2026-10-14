@@ -1,0 +1,16 @@
+[Unit]
+Description=Lume compressed RAM swap
+After=local-fs.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/sbin/modprobe zram
+ExecStart=/sbin/zramctl /dev/zram0 --algorithm lz4 --size 1536M
+ExecStart=/sbin/mkswap /dev/zram0
+ExecStart=/sbin/swapon --priority 100 /dev/zram0
+ExecStop=/sbin/swapoff /dev/zram0
+ExecStop=/sbin/zramctl --reset /dev/zram0
+
+[Install]
+WantedBy=multi-user.target
