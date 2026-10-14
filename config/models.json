@@ -3,7 +3,7 @@
   "routes": {
     "companion": { "family": "qwen", "endpointEnv": "LUME_QWEN_URL", "status": "existing" },
     "triage": { "family": "lfm2.5", "endpointEnv": "LUME_MOTO_URL", "status": "existing" },
-    "embedding": { "family": "all-MiniLM-L6-v2", "runtime": "onnx", "status": "adapter_ready" },
+    "embedding": { "family": "all-MiniLM-L6-v2", "runtime": "onnx-q4", "status": "existing", "dimensions": 384, "verified": "local_inference" },
     "shadow": { "family": "SmolLM2-360M-Instruct", "runtime": "onnx-q4", "status": "planned_download" },
     "vision": { "family": "Qwen3-VL-2B", "runtime": "quantized", "status": "planned_download", "requiresConsent": true },
     "speechToText": { "family": "faster-whisper-tiny.en", "runtime": "int8", "status": "existing" },
