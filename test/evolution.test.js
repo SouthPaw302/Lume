@@ -52,6 +52,13 @@ test("identity canary is real, singular, and automatically reversible", () => {
   assert.deepEqual(applyMutation({}, candidate.expressed.mutation).identity_layers, [{ trait: "patient persistence" }]);
 });
 
+test("generation-one expressed lineage remains candidate-only", () => {
+  const record = require("../lineages/generation-1/brainfuck.json");
+  assert.equal(record.status, "expressed"); assert.equal(record.target_branch, "evolution");
+  assert.equal(record.canary_eligible, false); assert.notEqual(record.builder, record.evaluator);
+  assert.equal(record.rollback_parent, "founding-generation-v1");
+});
+
 test("Telegram report distinguishes applied changes from proposals", () => {
   const report = buildReport({ generation: 2, survivors: ["candidate"], population: [{ id: "candidate", family: "field", status: "selected_for_canary" }], canary: { candidate_id: "older", status: "observing", before_digest: "a", after_digest: "b" } }, new Date("2026-10-14T00:00:00Z"));
   const text = asTelegram(report); assert.match(text, /only applied experimental change/); assert.match(text, /generation 2/); assert.doesNotMatch(text, /candidate: observing/);

@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "candidate_id": "g1-brainfuck-38628525560",
+  "status": "expressed",
+  "target_branch": "evolution",
+  "family": "brainfuck",
+  "seed": "1:brainfuck",
+  "parent": "founding-generation-v1",
+  "mutation": {
+    "target": "initiative_threshold",
+    "operation": "strengthen",
+    "magnitude": 0.01
+  },
+  "predicted_consequence": "Attempt unfamiliar but bounded tasks slightly sooner while preserving tool restraint.",
+  "artifact_digest": "0d9316f10526d6fd856d10c0358f98cbc7489a7fc96f76f12fc168194d957446",
+  "manifest_digest": "2d88358fc29153e29fe71923e4da8cca5c272e5aaa730bd759741f96a3bfc0da",
+  "evaluator_generation": 0,
+  "builder": "codex-builder",
+  "evaluator": "github-replay-evaluate",
+  "auditor": "github-adversarial-audit",
+  "canary_eligible": false,
+  "promotion_reason": null,
+  "rollback_parent": "founding-generation-v1"
+}

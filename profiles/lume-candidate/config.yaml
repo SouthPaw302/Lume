@@ -28,4 +28,8 @@ agent:
     - computer_use
 approvals:
   mode: manual
+skills:
+  write_approval: false
+  auto_load:
+    - g1-brainfuck-initiative
 _config_version: 50
