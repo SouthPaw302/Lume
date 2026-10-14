@@ -17,13 +17,20 @@ Private and generated data lives outside Git under
 `${LUME_DATA_DIR:-~/.local/share/lumeai}`. Historical `/home/koss/clawd`
 remains a read-only source archive during migration.
 
-## Development contract
+## Autonomous evolution contract
 
-Experiments may propose reversible behavior changes. They cannot modify live
-identity, personality, policy, schedules, secrets, or authoritative memory.
-A candidate must beat baseline on recorded episodes, repeat on unseen evidence,
-pass regression and leakage gates, and receive a signed Cardona approval before
-promotion.
+Hermes runs a restartable generational controller. Experiments can produce
+reversible changes to parameters, skills, policies, identity Markdown, routing,
+workflows, experiment design, and code. Candidates never write directly to the
+live phenotype: they are expressed on lineage branches, independently evaluated,
+audited, transfer-tested, merged to `evolution`, and deployed one at a time to a
+local canary. Only longitudinal survivors reach `main`; regressions restore the
+recorded parent commit.
+
+The promotion verifier, evidence ledger, secret filters, hidden fixtures, and a
+candidate's active evaluator are immutable to that candidate. Evaluation-method
+mutations are judged by the preceding generation. Builder, evaluator, and
+auditor roles must remain distinct.
 
 ```bash
 npm test
@@ -32,6 +39,9 @@ npm run experiment:demo
 npm run profiles:install
 npm run fixtures:import-history
 npm run replay
+npm run evolution:founding
+npm run evolution:cycle
+npm run evolution:report
 ```
 
 `fixtures:import-history` creates a private, mode-0600 historical set under the
@@ -57,5 +67,11 @@ The initial Hermes live profile is deliberately inference-only. Lume tools and
 memory continue through the audited core boundary rather than being handed to
 the OAuth bridge as unrestricted model tools.
 
-OpenClaw remains the migration baseline. Hermes is the target harness, but both
-consume the same core interfaces and neither owns Lume.
+OpenClaw remains a compatibility fallback. Hermes is the developmental operating
+system, but both consume the same core interfaces and neither owns Lume.
+
+GitHub is the distributed laboratory: issues are task manifests, PRs are
+candidate genomes, checks are selection gates, artifacts are evidence, branches
+are lineages, and tags mark generations. Hosted work is bounded to 12 parallel
+jobs. Private memory, transcripts, secrets, downloaded weights, and raw local
+evidence never enter the public repository.

@@ -1,12 +1,15 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
+  "controller": "hermes-generational",
+  "promotionTarget": "evolution",
+  "maxParallelJobs": 12,
   "experiments": [
-    { "id": "brainfuck", "producer": "src/experiments/brainfuck.js", "output": "bounded_policy_mutation", "liveDirect": false },
-    { "id": "snake", "producer": "src/experiments/snake.js", "output": "behavioral_hypothesis", "liveDirect": false },
-    { "id": "cellular-automata", "producer": "src/experiments/automata.js", "output": "coordination_hypothesis", "liveDirect": false },
-    { "id": "field", "producer": "src/experiments/field.js", "output": "typed_reversible_mutation", "liveDirect": false },
-    { "id": "books", "producer": "src/experiments/reflection.js", "output": "expiring_hypothesis", "liveDirect": false },
-    { "id": "self-reflection", "producer": "src/experiments/reflection.js", "output": "reversible_mutation", "selfScoring": false, "liveDirect": false },
-    { "id": "personality", "producer": "Lume/embodiment/personality-evolution.js", "output": "candidate_trait_evidence", "approvalRequired": true, "liveDirect": false }
+    { "id": "brainfuck", "producer": "src/experiments/brainfuck.js", "compiler": "src/evolution/compiler.js", "output": "executable_genome_mutation", "liveDirect": false },
+    { "id": "snake", "producer": "src/experiments/snake.js", "compiler": "src/evolution/compiler.js", "output": "executable_genome_mutation", "liveDirect": false },
+    { "id": "cellular-automata", "producer": "src/experiments/automata.js", "compiler": "src/evolution/compiler.js", "output": "executable_genome_mutation", "liveDirect": false },
+    { "id": "field", "producer": "src/experiments/field.js", "compiler": "src/evolution/compiler.js", "output": "executable_genome_mutation", "liveDirect": false },
+    { "id": "books", "producer": "src/experiments/reflection.js", "compiler": "src/evolution/compiler.js", "output": "executable_genome_mutation", "liveDirect": false },
+    { "id": "self-reflection", "producer": "src/experiments/reflection.js", "compiler": "src/evolution/compiler.js", "output": "executable_genome_mutation", "selfScoring": false, "liveDirect": false },
+    { "id": "personality", "producer": "Lume/embodiment/personality-evolution.js", "compiler": "src/evolution/compiler.js", "output": "identity_layer_patch", "approvalRequired": false, "requiresIndependentAudit": true, "liveDirect": false }
   ]
 }

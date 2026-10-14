@@ -2,9 +2,9 @@ name: Lume core checks
 
 on:
   push:
-    branches: [main]
+    branches: [main, evolution]
   pull_request:
-    branches: [main]
+    branches: [main, evolution]
   workflow_dispatch:
 
 permissions:

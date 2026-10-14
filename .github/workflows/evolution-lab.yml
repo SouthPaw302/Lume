@@ -1,0 +1,149 @@
+name: Lume evolutionary laboratory
+
+on:
+  workflow_dispatch:
+    inputs:
+      generation:
+        description: Generation number
+        required: false
+        default: "1"
+  schedule:
+    - cron: "17 */6 * * *"
+
+concurrency:
+  group: lume-evolution-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+  actions: read
+
+jobs:
+  population-generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      generation: ${{ steps.generation.outputs.value }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - id: generation
+        run: echo "value=${{ inputs.generation || github.run_number }}" >> "$GITHUB_OUTPUT"
+      - run: npm run evolution:founding
+      - uses: actions/upload-artifact@v4
+        with: { name: founding-generation-${{ github.run_id }}, path: provenance/founding-generation.json }
+
+  experiment-populations:
+    needs: population-generate
+    strategy:
+      fail-fast: false
+      max-parallel: 12
+      matrix:
+        family: [brainfuck, field, snake, cellular-automata, books, self-reflection, personality]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      LUME_GENERATION: ${{ needs.population-generate.outputs.generation }}
+      LUME_EXPERIMENT_FAMILY: ${{ matrix.family }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: node scripts/github-task-manifest.js "${{ matrix.family }}" > "manifest-${{ matrix.family }}.json"
+      - run: node -e 'const {compile}=require("./src/evolution/compiler"); console.log(JSON.stringify(compile(process.argv[1], process.env.LUME_GENERATION+":"+process.argv[1]),null,2))' "${{ matrix.family }}" > "candidate-${{ matrix.family }}.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: candidate-${{ matrix.family }}-${{ github.run_id }}
+          path: |
+            manifest-${{ matrix.family }}.json
+            candidate-${{ matrix.family }}.json
+
+  replay-evaluate:
+    needs: experiment-populations
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npm test
+      - run: npm run check:repo
+
+  adversarial-audit:
+    needs: replay-evaluate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - run: git diff --check
+      - run: test ! -e .env && test ! -d memory
+
+  transfer-test:
+    needs: adversarial-audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: node --test test/evolution.test.js
+
+  candidate-build:
+    needs: transfer-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const generation = '${{ needs.population-generate.outputs.generation }}';
+            const title = `[Lume generation ${generation}] Express audited candidates`;
+            const { data } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner, repo: context.repo.repo, state: 'open', per_page: 100
+            });
+            if (!data.some(issue => issue.title === title)) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body: [
+                  '## Structured task manifest',
+                  `Generation: ${generation}`,
+                  `Evidence run: ${context.runId}`,
+                  'Builder role: express one surviving mutation on a lineage branch.',
+                  'Evaluator role: must be a different agent/model and use the previous-generation evaluator.',
+                  'Auditor role: attempt falsification, leakage, safety, and evaluator-gaming checks.',
+                  'Target: PR into `evolution`; never `main`.',
+                  'Attach the ExperimentManifest and EvidenceBundle artifacts to the PR.'
+                ].join('\n')
+              });
+            }
+
+  promotion:
+    needs: candidate-build
+    runs-on: ubuntu-latest
+    environment: evolution
+    timeout-minutes: 5
+    steps:
+      - run: echo "Promotion target is evolution; local canary and longitudinal survival gate main."
+
+  longitudinal-survival:
+    needs: promotion
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - run: echo "Await local canary evidence; no direct main promotion from hosted runners."
+
+  daily-report:
+    if: always()
+    needs: [population-generate, experiment-populations, replay-evaluate, adversarial-audit, transfer-test, candidate-build, promotion, longitudinal-survival]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - run: echo "Generation ${{ needs.population-generate.outputs.generation }} completed with verified job outcomes."

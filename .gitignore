@@ -120,6 +120,10 @@ build/
 !/scripts/search-lume-archive.js
 !/scripts/lume-context.js
 !/scripts/autonomous-development.js
+!/scripts/evolution-cycle.js
+!/scripts/evolution-report.js
+!/scripts/github-task-manifest.js
+!/scripts/build-founding-generation.js
 
 # --- Python bytecode ---
 __pycache__/

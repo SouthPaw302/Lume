@@ -18,8 +18,12 @@
     "profiles:install": "node scripts/install-hermes-profiles.js",
     "archive:index": "node scripts/index-lume-archive.js",
     "archive:search": "node scripts/search-lume-archive.js",
-    "core:context": "node scripts/lume-context.js"
-    ,"autonomy:run": "node scripts/autonomous-development.js"
+    "core:context": "node scripts/lume-context.js",
+    "autonomy:run": "node scripts/evolution-cycle.js",
+    "evolution:cycle": "node scripts/evolution-cycle.js",
+    "evolution:founding": "node scripts/build-founding-generation.js",
+    "evolution:report": "node scripts/evolution-report.js",
+    "evolution:manifest": "node scripts/github-task-manifest.js"
   },
   "engines": {
     "node": ">=20"

@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "routes": {
     "companion": { "family": "qwen", "endpointEnv": "LUME_QWEN_URL", "status": "existing" },
     "triage": { "family": "lfm2.5", "endpointEnv": "LUME_MOTO_URL", "status": "existing" },
@@ -8,11 +8,17 @@
     "vision": { "family": "Qwen3-VL-2B", "runtime": "quantized", "status": "planned_download", "requiresConsent": true },
     "speechToText": { "family": "faster-whisper-tiny.en", "runtime": "int8", "status": "existing" },
     "textToSpeech": { "family": "piper-en_US-amy-medium", "status": "existing" },
-    "audioEvents": { "family": "YAMNet", "runtime": "onnx", "status": "deferred", "requiresConsent": true }
+    "audioEvents": { "family": "YAMNet", "runtime": "onnx", "status": "deferred", "requiresConsent": true },
+    "retrievalNext": { "family": "EmbeddingGemma", "runtime": "litert", "status": "benchmark" },
+    "toolDecision": { "family": "FunctionGemma", "runtime": "litert", "status": "benchmark" },
+    "generationOpen": { "family": "Gemma-4-E2B-E4B", "runtime": "litert-lm", "status": "benchmark" },
+    "typedDecision": { "family": "open-jev-style", "runtime": "onnx-or-native", "status": "benchmark", "hostedOfficialEnabled": false }
   },
   "invariants": {
     "selfEvaluation": false,
     "candidateLiveWrites": false,
+    "independentBuilderEvaluator": true,
+    "previousGenerationEvaluatorForMethodChanges": true,
     "continuousSensing": false
   }
 }
