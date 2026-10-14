@@ -15,7 +15,10 @@
     "oauth:bridge": "node scripts/openclaw-oauth-bridge.js",
     "experiment:trial": "node scripts/run-candidate-trial.js",
     "experiment:prospective": "node scripts/capture-prospective-trial.js",
-    "profiles:install": "node scripts/install-hermes-profiles.js"
+    "profiles:install": "node scripts/install-hermes-profiles.js",
+    "archive:index": "node scripts/index-lume-archive.js",
+    "archive:search": "node scripts/search-lume-archive.js",
+    "core:context": "node scripts/lume-context.js"
   },
   "engines": {
     "node": ">=20"

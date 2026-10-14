@@ -26,9 +26,16 @@ HMAC-linked Cardona approval can unlock promotion.
 
 ## Harness migration
 
-OpenClaw remains available as the live fallback. Hermes profiles run against
-the same capsule, tools, model routes, and fixtures. Telegram is not moved until
-Hermes passes continuity, tool-policy, recovery, and regression gates.
+Hermes is the live Telegram harness. OpenClaw's gateway is disabled and retained
+as a cold rollback; its stored OpenAI OAuth is consumed through a loopback-only
+bridge. `/home/koss/clawd` remains the external historical laboratory and live
+messaging workspace, while this repository owns the runtime-independent core.
+
+The external archive index at `LUME_DATA_DIR/archive/index.jsonl` covers dated
+memory, canon notes, SECOND_BRAIN, research reports, nightly outputs, and key
+identity files. `npm run archive:search -- <query>` searches it without loading
+the multi-gigabyte archive into model context. `npm run core:context -- <query>`
+returns Lume's identity and typed-memory capsule for harness consumption.
 
 ## Replay and recovery
 

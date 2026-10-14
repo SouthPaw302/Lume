@@ -116,6 +116,9 @@ build/
 !/scripts/openclaw-oauth-bridge.js
 !/scripts/run-candidate-trial.js
 !/scripts/capture-prospective-trial.js
+!/scripts/index-lume-archive.js
+!/scripts/search-lume-archive.js
+!/scripts/lume-context.js
 
 # --- Python bytecode ---
 __pycache__/
