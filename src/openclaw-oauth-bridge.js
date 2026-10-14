@@ -3,7 +3,7 @@
 const http = require("node:http");
 const { OpenClawOAuthClient } = require("./openclaw-oauth-client");
 
-const ALLOWED_MODELS = new Set(["openai/gpt-5.5", "openai/gpt-5.6-luna"]);
+const ALLOWED_MODELS = new Set(["openai/gpt-5.6-sol", "openai/gpt-5.6-luna"]);
 
 function toolName(tool) { return String(tool?.function?.name || tool?.name || ""); }
 
@@ -36,7 +36,7 @@ function createOAuthBridge({ clientFactory = options => new OpenClawOAuthClient(
     request.on("end", async () => {
       try {
         const input = JSON.parse(body);
-        const model = String(input.model || "openai/gpt-5.5");
+        const model = String(input.model || "openai/gpt-5.6-sol");
         if (!ALLOWED_MODELS.has(model)) return json(response, 400, { error: { message: "model is not allowlisted" } });
         const tools = Array.isArray(input.tools) ? input.tools : [];
         const offeredTools = new Set(tools.map(toolName).filter(Boolean));

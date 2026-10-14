@@ -13,7 +13,7 @@ function fixtures(name) { return JSON.parse(fs.readFileSync(path.join(PROJECT_RO
 
 async function main() {
   const core = new LumeCore();
-  const producer = new OpenClawOAuthClient({ model: "openai/gpt-5.5" });
+  const producer = new OpenClawOAuthClient({ model: "openai/gpt-5.6-sol" });
   const evaluator = new OpenClawOAuthClient({ model: "openai/gpt-5.6-luna" });
   const baselinePolicy = readJson(core.paths.livePolicy, {});
   const trialKind = process.env.LUME_TRIAL_KIND || "correction-precedence";

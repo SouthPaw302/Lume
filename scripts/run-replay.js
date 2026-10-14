@@ -24,7 +24,7 @@ async function main() {
   const primary = process.env.LUME_QWEN_URL || "http://192.168.12.82:12435";
   const fallback = process.env.LUME_QWEN_FALLBACK_URL;
   const client = backend === "openclaw-oauth"
-    ? new OpenClawOAuthClient({ model: process.env.LUME_OPENAI_MODEL || "openai/gpt-5.5" })
+    ? new OpenClawOAuthClient({ model: process.env.LUME_OPENAI_MODEL || "openai/gpt-5.6-sol" })
     : new OpenAICompatibleClient({ endpoints: [{ id: "qwen-primary", url: primary }, ...(fallback ? [{ id: "qwen-fallback", url: fallback }] : [])] });
   const evaluator = backend === "openclaw-oauth"
     ? new OpenClawOAuthClient({ model: process.env.LUME_EVALUATOR_MODEL || "openai/gpt-5.6-luna", thinking: "low" })

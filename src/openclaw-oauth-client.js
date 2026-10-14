@@ -8,7 +8,7 @@ const execFileAsync = promisify(execFile);
 
 class OpenClawOAuthClient {
   constructor({
-    model = "openai/gpt-5.5",
+    model = "openai/gpt-5.6-sol",
     agent = "main",
     thinking = "low",
     timeoutMs = 180_000,
@@ -25,7 +25,7 @@ class OpenClawOAuthClient {
       return `${String(message.role || "user").toUpperCase()}:\n${simple ? message.content : JSON.stringify(message)}`;
     }).join("\n\n");
     const started = Date.now();
-    const { stdout } = await this.exec(this.nodePath, [this.cliPath, "infer", "model", "run", "--agent", this.agent, "--model", this.model, "--thinking", this.thinking, "--prompt", prompt, "--json"], { timeout: this.timeoutMs, maxBuffer: 8 * 1024 * 1024, cwd: path.dirname(this.cliPath) });
+    const { stdout } = await this.exec(this.nodePath, [this.cliPath, "infer", "model", "run", "--local", "--agent", this.agent, "--model", this.model, "--thinking", this.thinking, "--prompt", prompt, "--json"], { timeout: this.timeoutMs, maxBuffer: 8 * 1024 * 1024, cwd: path.dirname(this.cliPath) });
     const envelope = JSON.parse(String(stdout));
     if (!envelope.ok) throw new Error(envelope.error?.message || "OpenClaw OAuth inference failed");
     const text = String(envelope.outputs?.[0]?.text || "").trim();

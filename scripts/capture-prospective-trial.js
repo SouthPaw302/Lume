@@ -34,7 +34,7 @@ async function main() {
   const baselinePolicy = readJson(core.paths.livePolicy, {});
   const candidatePolicy = core.experiments.materializePolicy(candidate, baselinePolicy);
   const capsule = await core.build_capsule(fixture.prompt, { surface: "prospective-trial", memoryPolicy: { limit: 5 } });
-  const producer = new OpenClawOAuthClient({ model: "openai/gpt-5.5" });
+  const producer = new OpenClawOAuthClient({ model: "openai/gpt-5.6-sol" });
   const evaluator = new OpenClawOAuthClient({ model: "openai/gpt-5.6-luna" });
   const baselineEnvelope = buildReplayEnvelope({ fixture, capsule, policy: baselinePolicy, mode: "baseline" });
   const candidateEnvelope = buildReplayEnvelope({ fixture, capsule, policy: candidatePolicy, mode: "candidate" });

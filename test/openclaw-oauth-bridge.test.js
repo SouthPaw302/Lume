@@ -11,10 +11,10 @@ test("OAuth bridge is loopback-compatible and does not expose tokens", async t =
   const base = `http://127.0.0.1:${server.address().port}`;
   const health = await (await fetch(`${base}/health`)).json();
   assert.equal(health.token_exposed, false);
-  const good = await fetch(`${base}/v1/chat/completions`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ model: "openai/gpt-5.5", messages: [{ role: "user", content: "hi" }] }) });
+  const good = await fetch(`${base}/v1/chat/completions`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ model: "openai/gpt-5.6-sol", messages: [{ role: "user", content: "hi" }] }) });
   assert.equal(good.status, 200);
-  assert.equal((await good.json()).choices[0].message.content, "reply:openai/gpt-5.5");
-  const withTool = await fetch(`${base}/v1/chat/completions`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ model: "openai/gpt-5.5", messages: [], tools: [{ type: "function", function: { name: "terminal" } }] }) });
+  assert.equal((await good.json()).choices[0].message.content, "reply:openai/gpt-5.6-sol");
+  const withTool = await fetch(`${base}/v1/chat/completions`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ model: "openai/gpt-5.6-sol", messages: [], tools: [{ type: "function", function: { name: "terminal" } }] }) });
   assert.equal(withTool.status, 200);
 });
 
