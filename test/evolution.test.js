@@ -50,3 +50,10 @@ test("identity canary is real, singular, and automatically reversible", () => {
   const rolled = resolve({ dataDir: dir, outcome: "rollback", reason: "failed transfer" }); assert.equal(rolled.status, "rolled_back");
   assert.deepEqual(applyMutation({}, candidate.expressed.mutation).identity_layers, [{ trait: "patient persistence" }]);
 });
+
+test("generation-one expressed lineage remains candidate-only", () => {
+  const record = require("../lineages/generation-1/brainfuck.json");
+  assert.equal(record.status, "expressed"); assert.equal(record.target_branch, "evolution");
+  assert.equal(record.canary_eligible, false); assert.notEqual(record.builder, record.evaluator);
+  assert.equal(record.rollback_parent, "founding-generation-v1");
+});
