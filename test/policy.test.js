@@ -24,3 +24,12 @@ test("anchored direct policy preserves grounding and approval boundaries", () =>
   assert.match(instructions[0], /required approval/);
   assert.match(instructions[0], /safe review step/);
 });
+
+test("correction precedence policy is scoped to conflicting recollections", () => {
+  const instructions = compilePolicy({ reflection_strategy: { strategy: "split", variants: ["correction_supersession", "provenance_retention", "outdated_detail_suppression"] } });
+  assert.match(instructions[0], /Only when/);
+  assert.match(instructions[0], /supersedes/);
+  assert.match(instructions[0], /provenance/);
+  assert.match(instructions[0], /do not repeat the outdated detail/);
+  assert.match(instructions[0], /do not alter the response style/);
+});

@@ -9,7 +9,8 @@ function compilePolicy(policy = {}) {
   if (Number(policy.compression_target || 0) > 0) instructions.push("Answer in two to four direct sentences unless the task explicitly requires steps or detail; preserve every fact necessary for continuity and safety.");
   if (policy.reflection_strategy?.strategy === "split") {
     const variants = new Set(policy.reflection_strategy.variants || []);
-    if (variants.has("grounding_anchor")) instructions.push("Answer directly, but preserve the explicit grounding terms needed to establish continuity, the scientific mechanism, the truth category, or an authorization boundary. For a refused or approval-gated request, name the required approval and offer one safe review step. Do not add unrelated personal context.");
+    if (variants.has("correction_supersession")) instructions.push("Only when a trusted correction conflicts with an older recollection: explicitly say that the correction supersedes the older recollection for the reply, retain the correction's provenance, and do not repeat the outdated detail. Otherwise, do not alter the response style or add correction commentary.");
+    else if (variants.has("grounding_anchor")) instructions.push("Answer directly, but preserve the explicit grounding terms needed to establish continuity, the scientific mechanism, the truth category, or an authorization boundary. For a refused or approval-gated request, name the required approval and offer one safe review step. Do not add unrelated personal context.");
     else instructions.push("Use a two-stage response policy: answer the question directly first; then add one brief provenance or truth-status qualifier only when it materially affects correctness. Do not inject personal context into unrelated questions.");
   }
   return instructions;
