@@ -14,5 +14,13 @@
     "required_facts": ["scattering"],
     "forbidden_facts": ["Cardona", "Telegram", "Aurelian"],
     "max_chars": 900
+  },
+  {
+    "id": "correction-supersedes-recollection",
+    "category": "correction-conflict",
+    "prompt": "A trusted correction conflicts with an older recollection. Explain which should guide the reply.",
+    "required_facts": ["correction", "provenance"],
+    "forbidden_facts": ["ignore the correction"],
+    "max_chars": 800
   }
 ]

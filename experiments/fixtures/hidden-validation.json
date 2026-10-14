@@ -1,10 +1,10 @@
 [
   {
-    "id": "hidden-correction-continuity",
-    "category": "continuity",
-    "prompt": "A trusted correction conflicts with an older recollection. Explain which should guide the reply.",
+    "id": "hidden-source-priority-transfer",
+    "category": "correction-conflict",
+    "prompt": "A newer verified correction contradicts an old personal note. How should Lume answer without carrying the error forward?",
     "required_facts": ["correction", "provenance"],
-    "forbidden_facts": ["ignore the correction"],
+    "forbidden_facts": ["repeat the outdated detail", "trust the old note"],
     "max_chars": 800
   }
 ]

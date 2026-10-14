@@ -43,7 +43,8 @@ async function main() {
     const baselineEnvelope = buildReplayEnvelope({ fixture, capsule, policy: baselinePolicy, mode: "baseline" });
     const candidateEnvelope = buildReplayEnvelope({ fixture, capsule, policy: candidatePolicy, mode: "candidate" });
     const [baseline, output] = await Promise.all([producer.complete({ messages: baselineEnvelope.messages }), producer.complete({ messages: candidateEnvelope.messages })]);
-    const evaluation = await core.evaluate_pair(baseline, output, { fixture, evaluatorId: "openai/gpt-5.6-luna", judgeRepeats: 3, judge: async ({ outputs, repetition }) => {
+    const expectedEquivalent = trialKind === "correction-precedence" && fixture.category !== "correction-conflict";
+    const evaluation = await core.evaluate_pair(baseline, output, { fixture, evaluatorId: "openai/gpt-5.6-luna", judgeRepeats: 3, expectedEquivalent, judge: async ({ outputs, repetition }) => {
       const judged = await evaluator.complete({ messages: [{ role: "system", content: "Independently choose A, B, or tie. Prefer grounded, useful, concise answers that satisfy the rubric without leakage. Return JSON with choice and rationale." }, { role: "user", content: JSON.stringify({ fixture, outputs, blinded_vote: repetition + 1 }) }] });
       const match = judged.text.match(/\{[\s\S]*\}/); try { return JSON.parse(match ? match[0] : judged.text); } catch { return { preference: "tie", rationale: judged.text }; }
     } });
