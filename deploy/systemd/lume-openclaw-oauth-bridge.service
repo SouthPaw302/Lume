@@ -1,7 +1,7 @@
 [Unit]
 Description=Lume loopback bridge to OpenClaw-owned OpenAI OAuth
-After=openclaw-gateway.service
-Requires=openclaw-gateway.service
+After=network-online.target
+Wants=network-online.target
 
 [Service]
 Type=simple

@@ -16,5 +16,7 @@ for (const name of names) {
   for (const file of ["SOUL.md", "config.yaml"]) {
     fs.copyFileSync(path.join(source, file), path.join(target, file));
   }
+  const sourceSkills = path.join(source, "skills");
+  if (fs.existsSync(sourceSkills)) fs.cpSync(sourceSkills, path.join(target, "skills"), { recursive: true, force: true });
   console.log(`installed ${name} profile contract`);
 }

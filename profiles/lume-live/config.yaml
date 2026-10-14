@@ -7,29 +7,22 @@ terminal:
   backend: local
   cwd: /home/koss/LumeAI
 agent:
-  disabled_toolsets:
-    - web
-    - browser
-    - terminal
-    - file
-    - code_execution
-    - vision
-    - image_gen
-    - tts
-    - stt
-    - skills
-    - todo
-    - memory
-    - session_search
-    - connections
-    - clarify
-    - delegation
-    - cronjob
-    - computer_use
+  disabled_toolsets: []
 approvals:
-  mode: manual
+  mode: auto
   deny:
     - "git push*"
     - "*camera*"
     - "*continuous*sensing*"
+memory:
+  memory_enabled: true
+  user_profile_enabled: true
+  memory_char_limit: 2200
+  user_char_limit: 1375
+  write_approval: false
+skills:
+  write_approval: false
+  guard_agent_created: true
+  auto_load:
+    - lume-development
 _config_version: 50

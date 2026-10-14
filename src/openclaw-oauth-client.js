@@ -20,7 +20,10 @@ class OpenClawOAuthClient {
   }
 
   async complete(request) {
-    const prompt = (request.messages || []).map(message => `${String(message.role || "user").toUpperCase()}:\n${typeof message.content === "string" ? message.content : JSON.stringify(message.content)}`).join("\n\n");
+    const prompt = (request.messages || []).map(message => {
+      const simple = typeof message.content === "string" && !message.tool_calls && !message.tool_call_id && !message.name;
+      return `${String(message.role || "user").toUpperCase()}:\n${simple ? message.content : JSON.stringify(message)}`;
+    }).join("\n\n");
     const started = Date.now();
     const { stdout } = await this.exec(this.nodePath, [this.cliPath, "infer", "model", "run", "--agent", this.agent, "--model", this.model, "--thinking", this.thinking, "--prompt", prompt, "--json"], { timeout: this.timeoutMs, maxBuffer: 8 * 1024 * 1024, cwd: path.dirname(this.cliPath) });
     const envelope = JSON.parse(String(stdout));
