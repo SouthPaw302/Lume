@@ -97,7 +97,7 @@ jobs:
       - run: node --test test/evolution.test.js
 
   candidate-build:
-    needs: transfer-test
+    needs: [population-generate, transfer-test]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
