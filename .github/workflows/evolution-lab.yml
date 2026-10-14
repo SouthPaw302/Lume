@@ -47,7 +47,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      LUME_GENERATION: ${{ needs.population-generate.outputs.generation }}
+      LUME_GENERATION: ${{ needs['population-generate'].outputs.generation }}
       LUME_EXPERIMENT_FAMILY: ${{ matrix.family }}
     steps:
       - uses: actions/checkout@v4
@@ -102,7 +102,7 @@ jobs:
       - uses: actions/github-script@v7
         with:
           script: |
-            const generation = '${{ needs.population-generate.outputs.generation }}';
+            const generation = '${{ needs['population-generate'].outputs.generation }}';
             const title = `[Lume generation ${generation}] Express audited candidates`;
             const { data } = await github.rest.issues.listForRepo({
               owner: context.repo.owner, repo: context.repo.repo, state: 'open', per_page: 100
@@ -146,4 +146,4 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - run: echo "Generation ${{ needs.population-generate.outputs.generation }} completed with verified job outcomes."
+      - run: echo "Generation ${{ needs['population-generate'].outputs.generation }} completed with verified job outcomes."
