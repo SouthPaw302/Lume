@@ -53,3 +53,29 @@ test("approval card exposes evidence, tradeoffs, and rollback before signing", (
   assert.ok(card.evidence.length >= 3);
   assert.ok(card.tradeoffs.length > 0);
 });
+
+test("two distinct future real interactions validate an exercised candidate", () => {
+  const { engine } = setup();
+  let candidate = engine.propose({ hypothesis: "correction precedence", mutation: { target: "reflection_strategy", operator: "split", variants: ["correction_supersession"] }, source: { kind: "test" } });
+  candidate = engine.transition(candidate.id, "shadow_tested");
+  candidate = engine.transition(candidate.id, "exercised", { results: [{ group: "regression", evaluation: { deterministic_pass: true } }] });
+  const evidence = episode => ({ episode_id: episode, occurred_at: "2026-10-14T00:00:00Z", prompt: `future ${episode}`, source: { kind: "real_interaction" }, evaluation: { passed: true } });
+  const first = engine.recordProspective(candidate.id, evidence("future-1"));
+  assert.equal(first.state, "exercised");
+  assert.equal(first.validations, 1);
+  const second = engine.recordProspective(candidate.id, evidence("future-2"));
+  assert.equal(second.state, "validated");
+  assert.equal(second.validations, 2);
+  assert.equal(second.regression_free, true);
+});
+
+test("prospective evidence rejects fabricated timing and duplicate episodes", () => {
+  const { engine } = setup();
+  let candidate = engine.propose({ hypothesis: "test", mutation: { target: "initiative_threshold", operator: "strengthen", magnitude: 0.05 }, source: { kind: "test" } });
+  candidate = engine.transition(candidate.id, "shadow_tested");
+  candidate = engine.transition(candidate.id, "exercised", { results: [{ group: "regression", evaluation: { deterministic_pass: true } }] });
+  assert.throws(() => engine.recordProspective(candidate.id, { episode_id: "old", occurred_at: "2026-10-12T00:00:00Z", source: { kind: "real_interaction" }, evaluation: { passed: true } }), /after candidate creation/);
+  const valid = { episode_id: "future", occurred_at: "2026-10-14T00:00:00Z", source: { kind: "real_interaction" }, evaluation: { passed: true } };
+  engine.recordProspective(candidate.id, valid);
+  assert.throws(() => engine.recordProspective(candidate.id, valid), /already recorded/);
+});

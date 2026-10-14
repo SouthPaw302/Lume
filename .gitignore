@@ -115,6 +115,7 @@ build/
 !/scripts/import-historical-replays.js
 !/scripts/openclaw-oauth-bridge.js
 !/scripts/run-candidate-trial.js
+!/scripts/capture-prospective-trial.js
 
 # --- Python bytecode ---
 __pycache__/

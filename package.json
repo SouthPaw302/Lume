@@ -14,6 +14,7 @@
     "fixtures:import-history": "node scripts/import-historical-replays.js",
     "oauth:bridge": "node scripts/openclaw-oauth-bridge.js",
     "experiment:trial": "node scripts/run-candidate-trial.js",
+    "experiment:prospective": "node scripts/capture-prospective-trial.js",
     "profiles:install": "node scripts/install-hermes-profiles.js"
   },
   "engines": {

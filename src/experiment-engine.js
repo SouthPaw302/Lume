@@ -69,6 +69,26 @@ class ExperimentEngine {
 
   evaluatePair(input) { return evaluatePair(input); }
 
+  recordProspective(candidateId, evidence) {
+    const candidate = this.get(candidateId);
+    if (!candidate || candidate.state !== "exercised") throw new Error("exercised candidate required");
+    if (evidence?.source?.kind !== "real_interaction") throw new Error("prospective evidence must come from a real interaction");
+    if (!evidence.episode_id) throw new Error("prospective episode_id is required");
+    const occurredAt = new Date(evidence.occurred_at);
+    if (!Number.isFinite(occurredAt.getTime()) || occurredAt <= new Date(candidate.created_at)) throw new Error("prospective interaction must occur after candidate creation");
+    const history = readJsonl(this.evidencePath).filter(row => row.candidate_id === candidateId);
+    if (history.some(row => row.state === "prospective" && row.evidence?.episode_id === evidence.episode_id)) throw new Error("prospective episode already recorded");
+    const recorded = { ...evidence, prompt_digest: stableHash(String(evidence.prompt || "")) };
+    appendJsonl(this.evidencePath, { at: this.clock().toISOString(), candidate_id: candidateId, state: "prospective", evidence: recorded });
+    if (evidence.evaluation?.passed !== true) return this.transition(candidateId, "regressed", { reason: "prospective interaction failed", episode_id: evidence.episode_id });
+    const validations = history.filter(row => row.state === "prospective" && row.evidence?.evaluation?.passed === true).length + 1;
+    const exercised = history.findLast(row => row.state === "exercised");
+    const regressionRows = exercised?.evidence?.results?.filter(row => row.group === "regression") || [];
+    const regressionFree = regressionRows.length > 0 && regressionRows.every(row => row.evaluation?.deterministic_pass === true);
+    if (validations >= 2 && regressionFree) return this.transition(candidateId, "validated", { validations, regression_free: true, latest_episode_id: evidence.episode_id });
+    return { ...candidate, validations, regression_free: regressionFree };
+  }
+
   approvalCard(candidateId) {
     const candidate = this.get(candidateId); if (!candidate) throw new Error("candidate not found");
     const evidence = readJsonl(this.evidencePath).filter(row => row.candidate_id === candidateId);
