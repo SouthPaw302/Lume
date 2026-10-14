@@ -6,6 +6,18 @@ const { promisify } = require("node:util");
 
 const execFileAsync = promisify(execFile);
 
+function boundedPrompt(messages, maxChars = 64_000) {
+  const rendered = (messages || []).map(message => {
+    const simple = typeof message.content === "string" && !message.tool_calls && !message.tool_call_id && !message.name;
+    return `${String(message.role || "user").toUpperCase()}:\n${simple ? message.content : JSON.stringify(message)}`;
+  });
+  const joined = rendered.join("\n\n");
+  if (joined.length <= maxChars) return joined;
+  const head = joined.slice(0, Math.floor(maxChars * 0.38));
+  const tail = joined.slice(-Math.floor(maxChars * 0.62));
+  return `${head}\n\n[OLDER CONVERSATION OMITTED BY LOCAL TRANSPORT]\n\n${tail}`;
+}
+
 class OpenClawOAuthClient {
   constructor({
     model = "openai/gpt-5.6-sol",
@@ -20,10 +32,7 @@ class OpenClawOAuthClient {
   }
 
   async complete(request) {
-    const prompt = (request.messages || []).map(message => {
-      const simple = typeof message.content === "string" && !message.tool_calls && !message.tool_call_id && !message.name;
-      return `${String(message.role || "user").toUpperCase()}:\n${simple ? message.content : JSON.stringify(message)}`;
-    }).join("\n\n");
+    const prompt = boundedPrompt(request.messages);
     const started = Date.now();
     const { stdout } = await this.exec(this.nodePath, [this.cliPath, "infer", "model", "run", "--local", "--agent", this.agent, "--model", this.model, "--thinking", this.thinking, "--prompt", prompt, "--json"], { timeout: this.timeoutMs, maxBuffer: 8 * 1024 * 1024, cwd: path.dirname(this.cliPath) });
     const envelope = JSON.parse(String(stdout));
@@ -34,4 +43,4 @@ class OpenClawOAuthClient {
   }
 }
 
-module.exports = { OpenClawOAuthClient };
+module.exports = { OpenClawOAuthClient, boundedPrompt };

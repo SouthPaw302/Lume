@@ -7,6 +7,13 @@ const ALLOWED_MODELS = new Set(["openai/gpt-5.6-sol", "openai/gpt-5.6-luna"]);
 
 function toolName(tool) { return String(tool?.function?.name || tool?.name || ""); }
 
+function compactTools(tools) {
+  return tools.map(tool => {
+    const fn = tool.function || tool;
+    return { name: fn.name, description: String(fn.description || "").slice(0, 180), parameters: fn.parameters || {} };
+  });
+}
+
 function parseToolResponse(text, offeredTools = new Set()) {
   const raw = String(text || "").trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
   let parsed;
@@ -41,13 +48,15 @@ function createOAuthBridge({ clientFactory = options => new OpenClawOAuthClient(
         const tools = Array.isArray(input.tools) ? input.tools : [];
         const offeredTools = new Set(tools.map(toolName).filter(Boolean));
         const messages = [...(input.messages || [])];
-        if (tools.length) messages.push({ role: "system", content: `You are behind a constrained tool-call transport. Available tools: ${JSON.stringify(tools.map(tool => tool.function || tool))}. To call tools, return ONLY JSON {"tool_calls":[{"name":"tool_name","arguments":{}}]}. Otherwise return ONLY JSON {"content":"your reply"}. Never invent a tool name.` });
+        if (tools.length) messages.push({ role: "system", content: `You are behind a constrained tool-call transport. Available tools: ${JSON.stringify(compactTools(tools))}. To call tools, return ONLY JSON {"tool_calls":[{"name":"tool_name","arguments":{}}]}. Otherwise return ONLY JSON {"content":"your reply"}. Never invent a tool name.` });
         const result = await clientFactory({ model, thinking: "low" }).complete({ messages });
         const parsed = tools.length ? parseToolResponse(result.text, offeredTools) : { content: result.text, tool_calls: null };
         const message = { role: "assistant", content: parsed.content };
         if (parsed.tool_calls) message.tool_calls = parsed.tool_calls;
         return json(response, 200, { id: `lume-${Date.now()}`, object: "chat.completion", created: Math.floor(Date.now() / 1000), model, choices: [{ index: 0, message, finish_reason: parsed.tool_calls ? "tool_calls" : "stop" }], usage: null, lume: { credential_owner: "openclaw", endpoint: result.endpoint, latency_ms: result.latency_ms } });
       } catch (error) {
+        const diagnostic = String(error?.stderr || error?.message || error).split("\n").filter(Boolean).slice(-6).join(" | ").slice(0, 1600);
+        console.error(`OAuth inference failed: code=${error?.code || "unknown"} signal=${error?.signal || "none"} ${diagnostic}`);
         return json(response, 502, { error: { message: "OpenClaw OAuth inference failed", type: "oauth_broker_failure" } });
       }
     });

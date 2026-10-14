@@ -2,7 +2,14 @@
 
 const assert = require("node:assert/strict");
 const test = require("node:test");
-const { OpenClawOAuthClient } = require("../src/openclaw-oauth-client");
+const { OpenClawOAuthClient, boundedPrompt } = require("../src/openclaw-oauth-client");
+
+test("bounds accumulated conversation before invoking the OAuth transport", () => {
+  const prompt = boundedPrompt([{ role: "developer", content: "a".repeat(50_000) }, { role: "user", content: "b".repeat(50_000) }]);
+  assert.ok(prompt.length < 65_000);
+  assert.match(prompt, /OLDER CONVERSATION OMITTED/);
+  assert.ok(prompt.endsWith("b".repeat(100)));
+});
 
 test("OpenClaw OAuth client uses stored-auth inference without exposing credentials", async () => {
   let invocation;
