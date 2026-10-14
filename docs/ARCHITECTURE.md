@@ -15,6 +15,13 @@ to `~/.local/share/lumeai`. Every record carries provenance and a truth class:
 
 `proposed -> shadow_tested -> exercised -> validated -> approved -> promoted`
 
+Cardona granted standing local autonomy on 2026-10-14. The system controller may
+sign and promote a validated candidate without a new prompt after independent
+evaluation, repeated prospective Telegram evidence, and regression-free gates.
+The proposing model cannot score or promote itself. Regression triggers automatic
+rollback. External posting, sensing, destructive actions, and secret disclosure
+are outside this standing authorization.
+
 Terminal states are `neutral`, `rejected`, `regressed`, `rolled_back`, and
 `expired`. Promotion requires repeated evidence, regression safety, an approval
 signature, and a reversible snapshot of the live policy.

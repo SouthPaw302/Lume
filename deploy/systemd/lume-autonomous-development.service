@@ -1,0 +1,19 @@
+[Unit]
+Description=Lume autonomous developmental controller
+After=hermes-gateway.service lume-openclaw-oauth-bridge.service
+Wants=hermes-gateway.service lume-openclaw-oauth-bridge.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/koss/LumeAI
+Environment=PATH=/home/koss/.openclaw/tools/node-v24.15.0/bin:/home/koss/.local/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/usr/bin/node /home/koss/LumeAI/scripts/autonomous-development.js
+Nice=10
+CPUWeight=15
+IOWeight=10
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/koss/.local/share/lumeai /home/koss/.hermes /home/koss/.openclaw /home/koss/clawd
+

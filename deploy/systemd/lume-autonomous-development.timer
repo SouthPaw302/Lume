@@ -1,0 +1,12 @@
+[Unit]
+Description=Run Lume autonomous development loop
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=30min
+AccuracySec=2min
+Persistent=false
+Unit=lume-autonomous-development.service
+
+[Install]
+WantedBy=timers.target

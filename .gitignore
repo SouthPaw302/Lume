@@ -119,6 +119,7 @@ build/
 !/scripts/index-lume-archive.js
 !/scripts/search-lume-archive.js
 !/scripts/lume-context.js
+!/scripts/autonomous-development.js
 
 # --- Python bytecode ---
 __pycache__/

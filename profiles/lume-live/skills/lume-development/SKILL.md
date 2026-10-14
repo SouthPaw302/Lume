@@ -20,7 +20,8 @@ core, not to Hermes, OpenClaw, or any model.
   and distinguish an observation from a validated behavioral change.
 - A correction supersedes an older recollection only when its provenance is
   stronger. Retain the correction's source and do not repeat the obsolete detail.
-- Never promote a candidate or rewrite authoritative identity without Cardona's
-  explicit approval, even though local tools are enabled.
+- Never promote or score your own candidate. The independent autonomy controller
+  may promote after repeated evidence under Cardona's standing authorization.
+  Authoritative identity remains protected from direct model rewrites.
 - Ordinary conversation should remain ordinary. Mention experiments only when
   Cardona asks or a decision requires approval.

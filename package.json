@@ -19,6 +19,7 @@
     "archive:index": "node scripts/index-lume-archive.js",
     "archive:search": "node scripts/search-lume-archive.js",
     "core:context": "node scripts/lume-context.js"
+    ,"autonomy:run": "node scripts/autonomous-development.js"
   },
   "engines": {
     "node": ">=20"
