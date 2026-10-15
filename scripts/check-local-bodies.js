@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 "use strict";
 
-// Run on the Lume PC, not in GitHub Actions. Probes established loopback ADB
-// forwards, Hatch, and the local voice service. Never contacts a cloud model.
+// Run on the Lume PC, not in GitHub Actions. Check the currently selected
+// device route (LAN by default, --usb for ADB), Hatch and local speech output.
+// Never calls a cloud model.
 
+const { deviceEndpoints } = require("../Lume/embodiment/lib/device-endpoints");
 const DEFAULTS = Object.freeze({
   s10: "http://127.0.0.1:12435",
   kiwix: "http://127.0.0.1:18081",
@@ -14,9 +16,9 @@ const DEFAULTS = Object.freeze({
 
 function endpoints(env = process.env) {
   return {
-    s10: env.LUME_QWEN_URL || DEFAULTS.s10,
-    kiwix: env.LUME_KIWIX_URL || DEFAULTS.kiwix,
-    aurelian: env.LUME_AURELIAN_URL || DEFAULTS.aurelian,
+    s10: deviceEndpoints(env).qwen,
+    kiwix: deviceEndpoints(env).kiwix,
+    aurelian: deviceEndpoints(env).aurelian.replace(/\/health$/, ""),
     hatch: env.LUME_DIAGNOSTIC_HATCH_URL || DEFAULTS.hatch,
     voice: env.LUME_VOICE_URL || DEFAULTS.voice
   };
@@ -79,6 +81,7 @@ async function diagnose({ fetchImpl = fetch, env = process.env, voiceRoundtrip =
 }
 if (require.main === module) {
   diagnose({
+    env: process.argv.includes("--usb") ? { ...process.env, LUME_S10_TRANSPORT: "usb" } : process.env,
     voiceRoundtrip: process.argv.includes("--voice-roundtrip")
   }).then(result => {
     process.stdout.write(JSON.stringify(result, null, 2) + "\n");
