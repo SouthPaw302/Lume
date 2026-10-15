@@ -21,6 +21,11 @@ class LumeCore {
 
   async build_capsule(query, context = {}) {
     const capsule = await buildCapsule({ query, context, memory: this.memory, identityPath: this.paths.identity, personalityPath: this.paths.personality });
+    // Approved native policy affects Hermes only; replay and other surfaces stay unchanged.
+    if (context.surface === "hermes") {
+      const approved = compilePolicy(readJson(this.paths.livePolicy, {}));
+      if (approved.length) capsule.approved_behavior = { source: "approved_local_policy", instructions: approved };
+    }
     // Strictly opt-in and Hermes-only: do not pollute baseline replay,
     // evaluations, normal Hatch requests, or Lume's standing live policy.
     if (process.env.LUME_ENABLE_EVOLUTION_CANARY !== "1" || context.surface !== "hermes") return capsule;
