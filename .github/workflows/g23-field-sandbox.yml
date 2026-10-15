@@ -1,0 +1,78 @@
+name: Lume FIELD g23 real ONNX sandbox experiment
+
+on:
+  pull_request:
+    branches: [evolution]
+    paths:
+      - '.github/workflows/g23-field-sandbox.yml'
+      - 'scripts/g23-field-experiment.cjs'
+      - 'scripts/g23-field-audit.cjs'
+      - 'experiments/fixtures/g23-field-public.json'
+      - 'profiles/lume-candidate/**'
+      - 'lineages/generation-43/field.json'
+      - 'test/g23-field.test.js'
+
+concurrency:
+  group: g23-field-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  isolated-unit-checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: node --test test/g23-field.test.js
+      - run: npm test
+      - run: npm run check:repo
+
+  actual-onnx-paired-trial:
+    needs: isolated-unit-checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      HF_HOME: ${{ runner.temp }}/lume-g23-public-models
+      HF_HUB_DISABLE_TELEMETRY: '1'
+      HF_HUB_DISABLE_XET: '1'
+      TOKENIZERS_PARALLELISM: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - name: Actual CPU ONNX model outputs - no credentials, no local data
+        run: node scripts/g23-field-experiment.cjs --output artifacts/g23-raw-results.json
+      - name: Upload actual inference outputs or explicit failure evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g23-real-inference-${{ github.run_id }}
+          path: artifacts/g23-raw-results.json
+          if-no-files-found: error
+          retention-days: 14
+
+  separate-fixed-rubric:
+    needs: actual-onnx-paired-trial
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          name: g23-real-inference-${{ github.run_id }}
+          path: artifacts/
+      - name: Score actual outputs with separately executed pre-registered rubric
+        run: node scripts/g23-field-audit.cjs artifacts/g23-raw-results.json artifacts/g23-EvidenceBundle.json
+      - name: Upload redacted EvidenceBundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: g23-evidence-bundle-${{ github.run_id }}
+          path: artifacts/g23-EvidenceBundle.json
+          if-no-files-found: error
+          retention-days: 30
