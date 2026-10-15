@@ -27,7 +27,7 @@ for (const row of nativeEvents) if (row.candidate?.id) nativeCandidates.set(row.
 const gate = candidate => {
   const id = candidate?.id || candidate?.candidate_id;
   const native = nativeCandidates.get(id);
-  if (!native || !["validated", "approved", "promoted"].includes(native.state)) return { eligible: false, reason: "no independently qualified native experiment" };
+  if (!native || !["validated", "approved"].includes(native.state)) return { eligible: false, reason: "no independently qualified native experiment" };
   if (candidate?.source_kind !== "verified_local_trial" || stableHash(candidate.expressed?.mutation) !== stableHash(native.mutation)) return { eligible: false, reason: "candidate mutation or source does not match native evidence" };
   return evidenceGate(id, privateEvidence);
 };
@@ -49,7 +49,7 @@ for (const item of population.filter(item => item.status === "proposed_for_evide
 // Carry only locally witnessed, independent native candidates across to
 // evolution. Simulation families stay in the proposal queue, never canaries.
 const qualifiedNative = [...nativeCandidates.values()].filter(candidate =>
-  ["validated", "approved", "promoted"].includes(candidate.state) &&
+  ["validated", "approved"].includes(candidate.state) &&
   evidenceGate(candidate.id, privateEvidence).eligible
 ).sort((a, b) => String(a.created_at).localeCompare(String(b.created_at)));
 for (const native of qualifiedNative.slice(-3).reverse()) {
