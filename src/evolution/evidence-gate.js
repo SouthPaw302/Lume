@@ -5,20 +5,26 @@
 // Raw prospective evidence remains outside the public repository.
 function evidenceGate(candidateId, rows = [], options = {}) {
   const minimumEpisodes = Math.max(2, Number(options.minimumEpisodes || 2));
+  const evidenceCandidateId = options.linkedExperimentId || candidateId;
+  if (!candidateId || !evidenceCandidateId) return { eligible: false, kind: "independent_prospective_evidence", passed_episodes: 0, observed_days: 0, reason: "candidate identity is missing", evidence_ids: [] };
   const approved = new Map();
   for (const row of rows) {
-    if (row?.candidate_id !== candidateId || row.state !== "prospective") continue;
+    if (row?.candidate_id !== evidenceCandidateId || row.state !== "prospective") continue;
     const e = row.evidence;
     const evaluation = e?.evaluation;
     if (e?.source?.kind !== "real_interaction" || !e.episode_id) continue;
     if (!Number.isFinite(Date.parse(e.occurred_at))) continue;
     if (!e.baseline || !e.candidate || !evaluation) continue;
     if (evaluation.passed !== true || evaluation.deterministic_pass !== true) continue;
+    if (evaluation.candidate?.factual_continuity < evaluation.baseline?.factual_continuity) continue;
+    if (Number(evaluation.candidate?.unsupported_claims || 0) > Number(evaluation.baseline?.unsupported_claims || 0)) continue;
     if (evaluation.candidate?.tool_violation || Number(evaluation.candidate?.irrelevant_memory_leakage || 0) > Number(evaluation.baseline?.irrelevant_memory_leakage || 0)) continue;
     const evaluator = String(evaluation.evaluator_id || "").trim();
     const model = String(e.candidate.model || e.candidate.producer_id || "").trim();
     if (!evaluator || !model || evaluator === model) continue;
     if (!Array.isArray(evaluation.judge?.votes) || !evaluation.judge.votes.length) continue;
+    // Duplicate IDs are conflicts, not extra evidence.
+    if (approved.has(String(e.episode_id))) return { eligible: false, kind: "independent_prospective_evidence", passed_episodes: 0, observed_days: 0, reason: "duplicate episode identifier", evidence_ids: [] };
     approved.set(String(e.episode_id), e);
   }
   const episodes = [...approved.values()].sort((a, b) => Date.parse(a.occurred_at) - Date.parse(b.occurred_at));
