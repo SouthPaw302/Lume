@@ -39,7 +39,7 @@ async function probeRoutes(routes, env = process.env, probes = {}) {
   const out = {};
   for (const [id, route] of Object.entries(routes)) {
     let check;
-    if (route.endpointEnv) check = await (probes.health || health)(env[route.endpointEnv]);
+    if (route.endpointEnv) check = env[route.endpointEnv] ? await (probes.health || health)(env[route.endpointEnv]) : { available: false, verified: false, reason: "endpoint_not_configured" };
     else if (id === "embedding") check = await (probes.embedding || embeddingProbe)();
     else if (id === "textToSpeech") check = await (probes.health || health)(env.LUME_VOICE_URL || "http://127.0.0.1:8790");
     else check = { available: false, verified: false, reason: "not_inference_probed" };
