@@ -1,6 +1,10 @@
 "use strict";
 
 const { buildCapsule } = require("./capsule");
+const path = require("node:path");
+const { readJson } = require("./io");
+const { transform } = require("./experiments/field");
+const { compilePolicy } = require("./policy");
 const { paths } = require("./config");
 const { createEmbeddingProvider } = require("./embeddings");
 const { EventBridge } = require("./events");
@@ -15,7 +19,29 @@ class LumeCore {
     this.events = new EventBridge({ dataRoot: this.paths.data, clock: options.DateClass || Date, onChange: options.onEvent });
   }
 
-  build_capsule(query, context = {}) { return buildCapsule({ query, context, memory: this.memory, identityPath: this.paths.identity, personalityPath: this.paths.personality }); }
+  async build_capsule(query, context = {}) {
+    const capsule = await buildCapsule({ query, context, memory: this.memory, identityPath: this.paths.identity, personalityPath: this.paths.personality });
+    // Strictly opt-in and Hermes-only: do not pollute baseline replay,
+    // evaluations, normal Hatch requests, or Lume's standing live policy.
+    if (process.env.LUME_ENABLE_EVOLUTION_CANARY !== "1" || context.surface !== "hermes") return capsule;
+    const active = readJson(path.join(this.paths.data, "evolution", "active-canary.json"), null);
+    if (active?.status !== "observing" || active.source_kind !== "verified_local_trial") return capsule;
+    const mutation = active.expression?.mutation;
+    const safeTargets = new Set(["uncertainty_threshold", "initiative_threshold", "clarification_threshold", "retrieval_depth", "compression_target", "reflection_strategy"]);
+    if (!safeTargets.has(mutation?.target)) return capsule;
+    try {
+      const baseline = readJson(this.paths.livePolicy, {});
+      const updated = transform(baseline, mutation).after;
+      const before = new Set(compilePolicy(baseline));
+      const additions = compilePolicy(updated).filter(instruction => !before.has(instruction));
+      if (additions.length) capsule.experimental_behavior = {
+        candidate_id: active.candidate_id,
+        label: "temporary_reversible_canary",
+        instructions: additions
+      };
+    } catch (_) { /* An invalid mutation never changes the live capsule. */ }
+    return capsule;
+  }
   retrieve_memory(query, policy = {}) { return this.memory.retrieve(query, policy); }
   record_episode(event) { return this.memory.recordEpisode(event); }
   propose_adaptation(hypothesis, mutation, options = {}) { return this.experiments.propose({ hypothesis, mutation, ...options }); }
