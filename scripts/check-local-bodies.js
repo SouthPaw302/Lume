@@ -3,7 +3,6 @@
 
 // Run on the Lume PC, not in GitHub Actions. Probes established loopback ADB
 // forwards, Hatch, and the local voice service. Never contacts a cloud model.
-const fs = require("node:fs");
 
 const DEFAULTS = Object.freeze({
   s10: "http://127.0.0.1:12435",
@@ -33,7 +32,7 @@ async function probe(fetchImpl, target, label, suffix, timeoutMs = 3000) {
   }
 }
 
-async function diagnose({ fetchImpl = fetch, env = process.env, voiceRoundtrip = false, sampleWav = null } = {}) {
+async function diagnose({ fetchImpl = fetch, env = process.env, voiceRoundtrip = false } = {}) {
   const ep = endpoints(env);
   const targets = [
     ["s10", ep.s10, "/health"],
@@ -73,29 +72,14 @@ async function diagnose({ fetchImpl = fetch, env = process.env, voiceRoundtrip =
       extra.tts_roundtrip = { ok: true, bytes: bytes.length };
     } catch (error) { extra.tts_roundtrip = { ok: false, reason: error.message }; }
   }
-  if (sampleWav) {
-    try {
-      const audio = fs.readFileSync(sampleWav);
-      if (!audio.length || audio.length > 8 * 1024 * 1024) throw Error("sample WAV must be 1–8 MB or less");
-      const response = await fetchImpl(url(ep.voice, "/transcribe"), {
-        method: "POST", headers: { "content-type": "audio/wav" }, body: audio,
-        signal: AbortSignal.timeout(120000)
-      });
-      if (!response.ok) throw Error("transcription failed");
-      const transcript = await response.json();
-      extra.stt_roundtrip = { ok: typeof transcript.text === "string" && transcript.text.trim().length > 0, language: transcript.language || null };
-    } catch (error) { extra.stt_roundtrip = { ok: false, reason: error.message }; }
-  }
   const required = new Set(["s10", "kiwix", "hatch", "hatch_ui", "hatch_chat_dependencies", "voice"]);
   const ok = results.filter(r => required.has(r.service)).every(r => r.ok)
-    && (!voiceRoundtrip || extra.tts_roundtrip?.ok === true)
-    && (!sampleWav || extra.stt_roundtrip?.ok === true);
+    && (!voiceRoundtrip || extra.tts_roundtrip?.ok === true);
   return { schema_version: 1, mode: "local-only", ok, services: results, hatch_dependencies: extra };
 }
 if (require.main === module) {
   diagnose({
-    voiceRoundtrip: process.argv.includes("--voice-roundtrip"),
-    sampleWav: process.argv.includes("--sample-wav") ? process.argv[process.argv.indexOf("--sample-wav") + 1] : null
+    voiceRoundtrip: process.argv.includes("--voice-roundtrip")
   }).then(result => {
     process.stdout.write(JSON.stringify(result, null, 2) + "\n");
     if (!result.ok) process.exitCode = 1;
