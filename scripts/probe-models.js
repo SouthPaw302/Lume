@@ -19,10 +19,25 @@ async function health(base) {
   try {
     const u = new URL(base);
     const response = await fetch(new URL("/health", u), { signal: AbortSignal.timeout(3000) });
-    return { available: response.ok, verified: response.ok, status: response.status, reason: response.ok ? "health_endpoint_confirmed" : "health_endpoint_failed" };
+    return { reachable: response.ok, available: false, verified: false, status: response.status, reason: response.ok ? "health_only_inference_not_probed" : "health_endpoint_failed" };
   } catch (error) {
     return { available: false, verified: false, reason: error.cause?.code || error.name };
   }
+}
+async function inference(base) {
+  const up = await health(base);
+  if (!up.reachable) return up;
+  try {
+    const response = await fetch(new URL("/v1/chat/completions", base), {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ model: "local", messages: [{ role: "user", content: "Say OK." }], max_tokens: 8, temperature: 0, stream: false }),
+      signal: AbortSignal.timeout(90000)
+    });
+    if (!response.ok) return { ...up, reason: "inference_http_" + response.status };
+    const body = await response.json();
+    const text = String(body.choices?.[0]?.message?.content || "").trim();
+    return { reachable: true, available: Boolean(text), verified: Boolean(text), reason: text ? "real_text_inference_completed" : "inference_empty", status: response.status };
+  } catch (error) { return { ...up, reason: "inference_" + (error.cause?.code || error.name) }; }
 }
 async function embeddingProbe() {
   if (!process.argv.includes("--verify-embedding")) return { available: false, verified: false, reason: "inference_not_probed_use_--verify-embedding" };
@@ -39,7 +54,7 @@ async function probeRoutes(routes, env = process.env, probes = {}) {
   const out = {};
   for (const [id, route] of Object.entries(routes)) {
     let check;
-    if (route.endpointEnv) check = env[route.endpointEnv] ? await (probes.health || health)(env[route.endpointEnv]) : { available: false, verified: false, reason: "endpoint_not_configured" };
+    if (route.endpointEnv) check = env[route.endpointEnv] ? await (process.argv.includes("--verify-inference") ? (probes.inference || inference) : (probes.health || health))(env[route.endpointEnv]) : { available: false, verified: false, reason: "endpoint_not_configured" };
     else if (id === "embedding") check = await (probes.embedding || embeddingProbe)();
     else if (id === "textToSpeech") check = await (probes.health || health)(env.LUME_VOICE_URL || "http://127.0.0.1:8790");
     else check = { available: false, verified: false, reason: "not_inference_probed" };
@@ -60,4 +75,4 @@ async function main() {
   atomicJson(output, report); console.log(JSON.stringify({ output, report }, null, 2));
 }
 if (require.main === module) main().catch(error => { console.error(error.stack || error.message); process.exitCode = 1; });
-module.exports = { embeddingProbe, health, probeRoutes };
+module.exports = { embeddingProbe, health, inference, probeRoutes };
