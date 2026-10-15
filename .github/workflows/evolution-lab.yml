@@ -106,23 +106,36 @@ jobs:
           script: |
             const generation = '${{ needs['population-generate'].outputs.generation }}';
             const title = `[Lume generation ${generation}] Express audited candidates`;
+            const label = 'lume:sandbox-task';
+            try {
+              await github.rest.issues.getLabel({ owner: context.repo.owner, repo: context.repo.repo, name: label });
+            } catch (error) {
+              if (error.status !== 404) throw error;
+              await github.rest.issues.createLabel({
+                owner: context.repo.owner, repo: context.repo.repo, name: label,
+                color: '6f42c1', description: 'Redacted candidate task for a manually launched sandbox agent'
+              });
+            }
             const { data } = await github.rest.issues.listForRepo({
-              owner: context.repo.owner, repo: context.repo.repo, state: 'open', per_page: 100
+              owner: context.repo.owner, repo: context.repo.repo, state: 'open', labels: label, per_page: 20
             });
-            if (!data.some(issue => issue.title === title)) {
+            if (!data.some(issue => !issue.pull_request)) {
               await github.rest.issues.create({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 title,
+                labels: [label],
                 body: [
-                  '## Structured task manifest',
+                  '## Lume sandbox bridge task',
                   `Generation: ${generation}`,
                   `Evidence run: ${context.runId}`,
                   'Builder role: express one surviving mutation on a lineage branch.',
                   'Evaluator role: must be a different agent/model and use the previous-generation evaluator.',
                   'Auditor role: attempt falsification, leakage, safety, and evaluator-gaming checks.',
                   'Target: PR into `evolution`; never `main`.',
-                  'Attach the ExperimentManifest and EvidenceBundle artifacts to the PR.'
+                  'Attach the ExperimentManifest and EvidenceBundle artifacts to the PR.',
+                  'Include `Lume-Bridge-Task: #ISSUE` in the PR body, replacing ISSUE with this issue number.',
+                  'Never request or publish local transcripts, private memory, credentials, or runtime databases.'
                 ].join('\n')
               });
             }

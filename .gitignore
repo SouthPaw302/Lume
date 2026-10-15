@@ -125,6 +125,7 @@ build/
 !/scripts/send-evolution-report.js
 !/scripts/probe-models.js
 !/scripts/github-task-manifest.js
+!/scripts/github-sandbox-bridge.js
 !/scripts/build-founding-generation.js
 
 # --- Python bytecode ---
