@@ -127,6 +127,12 @@ build/
 !/scripts/github-task-manifest.js
 !/scripts/github-sandbox-bridge.js
 !/scripts/build-founding-generation.js
+!/scripts/s10_watchdog.js
+!/scripts/s10/
+!/scripts/s10/10-lume-services
+!/scripts/tts_report.sh
+!/scripts/piper_tts.py
+!/scripts/socratic_book_debate.py
 
 # --- Python bytecode ---
 __pycache__/

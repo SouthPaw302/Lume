@@ -1,0 +1,106 @@
+#!/data/data/com.termux/files/usr/bin/bash
+# Idempotent S10 recovery for Lume Qwen, Kiwix, and the standalone Aurelian bridge.
+set -u
+
+PREFIX="/data/data/com.termux/files/usr"
+LUME_RUN="$HOME/.local/state/lume-services"
+LOG_DIR="$LUME_RUN/logs"
+PID_DIR="$LUME_RUN/pids"
+mkdir -p "$LOG_DIR" "$PID_DIR"
+termux-wake-lock >/dev/null 2>&1 || true
+
+# Keep administrative access inside Termux and expose it only on the phone's
+# loopback interface. Zorin reaches it through an explicit USB ADB forward.
+if command -v sshd >/dev/null 2>&1 && ! pgrep -x sshd >/dev/null 2>&1; then
+  sshd -p 8022 \
+    -o ListenAddress=127.0.0.1 \
+    -o PasswordAuthentication=no \
+    -o KbdInteractiveAuthentication=no \
+    -o PubkeyAuthentication=yes
+fi
+
+rotate_log() {
+  local file="$1"
+  if [ -f "$file" ] && [ "$(wc -c < "$file")" -gt 524288 ]; then
+    tail -c 262144 "$file" > "$file.tmp" && mv "$file.tmp" "$file"
+  fi
+}
+
+healthy() { curl -fsS --max-time 2 "$1" >/dev/null 2>&1; }
+KIWIX_BIND="${LUME_KIWIX_BIND:-127.0.0.1}"
+
+QWEN_LOG="$LOG_DIR/qwen.log"; rotate_log "$QWEN_LOG"
+if ! healthy "http://127.0.0.1:12435/health"; then
+  QWEN_BIN="$(command -v llama-server || true)"
+  QWEN_PREFERRED="$HOME/models/qwen3-4b-2507-abliterated/Huihui-Qwen3-4B-Instruct-2507-abliterated.Q5_K_M.gguf"
+  if [ -f "$QWEN_PREFERRED" ]; then
+    QWEN_MODEL="$QWEN_PREFERRED"
+  else
+    QWEN_MODEL="$(find "$HOME/models" "$HOME/storage/shared" /sdcard -type f -name '*Qwen3-4B*Q5_K_M*.gguf' 2>/dev/null | head -n 1)"
+  fi
+  if [ -n "$QWEN_BIN" ] && [ -n "$QWEN_MODEL" ]; then
+    # Direct chat is capped near 1.6K characters. One 8K slot avoids the
+    # multi-gigabyte swap pressure caused by the former 32K/two-slot setup.
+    nohup "$QWEN_BIN" -m "$QWEN_MODEL" --host 127.0.0.1 --port 12435 -c 8192 -t 6 -np 1 --jinja >>"$QWEN_LOG" 2>&1 &
+    echo $! > "$PID_DIR/qwen.pid"
+  else
+    printf '%s Qwen executable or model not found\n' "$(date -Iseconds)" >>"$QWEN_LOG"
+  fi
+fi
+
+KIWIX_LOG="$LOG_DIR/kiwix.log"; rotate_log "$KIWIX_LOG"
+# A previous failed readiness probe could leave more than one Kiwix listener.
+# Keep one clean instance so a stale duplicate cannot consume a CPU core forever.
+mapfile -t KIWIX_PIDS < <(ps -eo pid,args | awk '$2 ~ /(^|\/)kiwix-serve$/ {print $1}')
+if [ "${#KIWIX_PIDS[@]}" -gt 1 ]; then
+  kill "${KIWIX_PIDS[@]}" >/dev/null 2>&1 || true
+  sleep 1
+fi
+if ! healthy "http://$KIWIX_BIND:8081/"; then
+  KIWIX_BIN="$(command -v kiwix-serve || true)"
+  KIWIX_MANAGE="$(command -v kiwix-manage || true)"
+  KIWIX_LIBRARY="$HOME/kiwix/library.xml"
+  mapfile -d '' ZIMS < <(find "$HOME" "$HOME/storage/shared" /sdcard -type f -name '*.zim' -print0 2>/dev/null)
+  if [ -n "$KIWIX_BIN" ] && [ "${#ZIMS[@]}" -gt 0 ]; then
+    # Android/Termux rejects INADDR_ANY here on this S10 build; bind the
+    # device's stable trusted-LAN address explicitly.
+    if [ -n "$KIWIX_MANAGE" ]; then
+      KIWIX_LIBRARY_NEW="$KIWIX_LIBRARY.new"
+      rm -f "$KIWIX_LIBRARY_NEW"
+      if "$KIWIX_MANAGE" "$KIWIX_LIBRARY_NEW" add "${ZIMS[@]}" >>"$KIWIX_LOG" 2>&1; then
+        mv "$KIWIX_LIBRARY_NEW" "$KIWIX_LIBRARY"
+      fi
+    fi
+    if [ -s "$KIWIX_LIBRARY" ]; then
+      nohup "$KIWIX_BIN" --address="$KIWIX_BIND" --port=8081 --monitorLibrary --library "$KIWIX_LIBRARY" >>"$KIWIX_LOG" 2>&1 &
+    else
+      nohup "$KIWIX_BIN" --address="$KIWIX_BIND" --port=8081 "${ZIMS[@]}" >>"$KIWIX_LOG" 2>&1 &
+    fi
+    echo $! > "$PID_DIR/kiwix.pid"
+  else
+    printf '%s Kiwix executable or ZIM archives not found\n' "$(date -Iseconds)" >>"$KIWIX_LOG"
+  fi
+fi
+
+BRIDGE_LOG="$LOG_DIR/aurelian-bridge.log"; rotate_log "$BRIDGE_LOG"
+if ! healthy "http://127.0.0.1:8082/"; then
+  BRIDGE="$(find "$HOME" -type f \( -name 'bridge.py' -o -iname '*aurelian*bridge*.py' \) 2>/dev/null | head -n 1)"
+  if [ -n "$BRIDGE" ]; then
+    AURELIAN_QWEN_URL=http://127.0.0.1:12435/v1/chat/completions \
+    AURELIAN_KIWIX_URL=http://127.0.0.1:8081 \
+    nohup "$PREFIX/bin/python3" "$BRIDGE" >>"$BRIDGE_LOG" 2>&1 &
+    echo $! > "$PID_DIR/aurelian-bridge.pid"
+  else
+    printf '%s Aurelian bridge not found\n' "$(date -Iseconds)" >>"$BRIDGE_LOG"
+  fi
+fi
+
+for attempt in $(seq 1 60); do
+  qwen=down; kiwix=down; bridge=down
+  healthy "http://127.0.0.1:12435/health" && qwen=up
+  healthy "http://$KIWIX_BIND:8081/" && kiwix=up
+  healthy "http://127.0.0.1:8082/" && bridge=up
+  printf '%s qwen=%s kiwix=%s bridge=%s\n' "$(date -Iseconds)" "$qwen" "$kiwix" "$bridge" > "$LUME_RUN/health"
+  [ "$qwen" = up ] && [ "$kiwix" = up ] && [ "$bridge" = up ] && break
+  sleep 2
+done

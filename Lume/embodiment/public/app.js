@@ -6,6 +6,7 @@ const task = document.querySelector("#task");
 const detail = document.querySelector("#detail");
 const updated = document.querySelector("#updated");
 const background = document.querySelector("#background");
+const evolution = document.querySelector("#evolution");
 const connection = document.querySelector("#connection");
 const project = document.querySelector("#project");
 const dna = document.querySelector("#dna");
@@ -57,6 +58,10 @@ function render(next) {
   updated.textContent = next.updatedAt ? `Updated ${new Date(next.updatedAt).toLocaleTimeString()}` : "";
   const count = next.background_activities?.length || 0;
   background.textContent = `${count} background ${count === 1 ? "activity" : "activities"}`;
+  const development = next.evolution || {};
+  evolution.textContent = development.active_canary
+    ? `Generation ${development.generation} · trying ${development.active_canary} · ${development.queued_trials || 0} waiting`
+    : `Generation ${development.generation || 0} · no active developmental trial`;
 }
 
 fetch("/api/state").then(response => response.json()).then(render).catch(() => {});

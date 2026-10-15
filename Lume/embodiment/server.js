@@ -35,6 +35,7 @@ const PERSONALITY = path.join(ROOT, "..", "personality.json");
 const PERSONALITY_AUDIT = path.join(ROOT, "state", "personality-changes.jsonl");
 const PERSONALITY_EVIDENCE = path.join(ROOT, "state", "personality-evidence.jsonl");
 const DIRECT_AUDIO = path.join(ROOT, "state", "direct-audio");
+const EVOLUTION_STATE = process.env.LUME_EVOLUTION_STATE || path.join(process.env.HOME || "/home/koss", ".local", "share", "lumeai", "evolution", "state.json");
 const memoryStore = new MemoryStore(path.join(ROOT, "..", "..", "memory", "lume-records.jsonl"));
 const clients = new Set();
 const sockets = new Set();
@@ -63,7 +64,14 @@ function personalitySnapshot() {
   } catch (_) { return { traits: {}, evolution: {}, presentation: presentationFor({ traits: {} }) }; }
 }
 
-function decorateState(state) { return { ...state, personality: personalitySnapshot().presentation }; }
+function evolutionSnapshot() {
+  try {
+    const value = JSON.parse(fs.readFileSync(EVOLUTION_STATE, "utf8"));
+    return { generation: Number(value.generation || 0), active_canary: value.canary?.candidate_id || null, canary_status: value.canary?.status || null, queued_trials: (value.canary_queue || []).length, controller: "Hermes", inference_body: "S10 llama.cpp / Qwen3 4B" };
+  } catch (_) { return { generation: 0, active_canary: null, canary_status: "unavailable", queued_trials: 0, controller: "Hermes", inference_body: "S10 llama.cpp / Qwen3 4B" }; }
+}
+
+function decorateState(state) { return { ...state, personality: personalitySnapshot().presentation, evolution: evolutionSnapshot() }; }
 
 const engine = new StateEngine({ statePath: STATE, eventLogPath: EVENTS, onChange: broadcast });
 
