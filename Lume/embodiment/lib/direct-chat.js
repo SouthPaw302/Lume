@@ -110,7 +110,7 @@ async function retrieveKiwix(query, { fetchImpl = fetch, baseUrl, signal } = {})
 }
 
 class DirectChatService {
-  constructor({ sessionDirectory, buildCapsule, emit, fetchImpl = fetch, qwenUrl = "http://192.168.12.82:12435", kiwixUrl = "http://192.168.12.82:8081" }) {
+  constructor({ sessionDirectory, buildCapsule, emit, fetchImpl = fetch, qwenUrl = "http://127.0.0.1:12435", kiwixUrl = "http://127.0.0.1:18081" }) {
     this.sessions = new SessionStore(sessionDirectory);
     this.buildCapsule = buildCapsule;
     this.emit = emit;
