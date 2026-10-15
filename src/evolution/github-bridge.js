@@ -32,6 +32,15 @@ function safeCandidate(state = {}) {
   };
 }
 
+const LOCAL_CHECK_PREFIX = "[Lume local check]";
+
+function localCheckIssues(issues = []) {
+  return issues
+    .filter(issue => issue && !issue.pull_request && issue.state === "open" && String(issue.title || "").startsWith(LOCAL_CHECK_PREFIX))
+    .map(issue => ({ number: Number(issue.number), url: String(issue.html_url || ""), title: String(issue.title) }))
+    .filter(issue => Number.isInteger(issue.number) && issue.number > 0 && issue.url.startsWith("https://github.com/"));
+}
+
 function issueBody(candidate) {
   const manifest = JSON.stringify({ schema_version: 1, ...candidate });
   return [
@@ -92,12 +101,23 @@ function sync(options = {}) {
     head: pr.head?.ref,
     task: parseTaskReference(pr.body)
   })).filter(pr => pr.task);
+  // Separate local-verification inbox: public, redacted Issue metadata only.
+  // Failure here must never interrupt the pre-existing sandbox queue.
+  let localChecks = []; let localCheckError = null;
+  try {
+    const allOpen = JSON.parse(runGh(["api", `repos/${repository}/issues`, "-f", "state=open", "-f", "per_page=100", "--method", "GET"]) || "[]");
+    localChecks = localCheckIssues(allOpen);
+  } catch (error) {
+    localCheckError = String(error.message || error).slice(0, 160);
+  }
   const status = {
     schema_version: 1,
     checked_at: new Date().toISOString(),
     repository,
     candidate: candidate?.candidate_id || null,
     open_tasks: openIssues.map(issue => ({ number: issue.number, url: issue.html_url, title: issue.title })),
+    local_checks: localChecks,
+    local_check_error: localCheckError,
     returned_prs: returned,
     published,
     mode: "single-task-poll"
@@ -107,4 +127,4 @@ function sync(options = {}) {
   return status;
 }
 
-module.exports = { DEFAULT_REPOSITORY, LABEL, issueBody, parseTaskReference, safeCandidate, sync };
+module.exports = { DEFAULT_REPOSITORY, LABEL, LOCAL_CHECK_PREFIX, issueBody, localCheckIssues, parseTaskReference, safeCandidate, sync };
