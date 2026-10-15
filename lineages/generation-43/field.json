@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "candidate_id": "g23-field",
+  "family": "field",
+  "generation": 43,
+  "source_issue": 3,
+  "source_url": "https://github.com/SouthPaw302/Lume/issues/3",
+  "source_status": "observing",
+  "mutation": {
+    "target": "hermes_skills",
+    "operation": "strengthen",
+    "action": "query_model"
+  },
+  "expression": {
+    "type": "candidate_skill",
+    "path": "profiles/lume-candidate/skills/g23-field-query-model.md",
+    "isolation_profile": "lume-candidate",
+    "intended_effect": "Prefer one bounded second-model inquiry for a consequential uncertain assumption; never treat its result as verified evidence."
+  },
+  "development_status": "expressed_unverified",
+  "independent_evaluation": "not_requested_from_specific_reviewer",
+  "evidence_bundle": "omitted_per_user_request",
+  "candidate_tests": "omitted_per_user_request",
+  "merge_eligible": false,
+  "local_canary_eligible": false,
+  "main_promotion_eligible": false,
+  "rollback_parent": "4939c084f23a91c4867a79fd5f067f1a7e29ea56"
+}
