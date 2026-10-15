@@ -29,6 +29,11 @@ function decideRealCanary(active, evidenceRows, options = {}) {
   const bad = observed.find(e =>
     e.evaluation?.passed !== true ||
     e.evaluation?.deterministic_pass !== true ||
+    !e.evaluation?.evaluator_id ||
+    e.evaluation?.evaluator_id === (e.candidate?.producer_id || e.candidate?.model) ||
+    !Array.isArray(e.evaluation?.judge?.votes) || e.evaluation.judge.votes.length === 0 ||
+    Number(e.evaluation?.candidate?.factual_continuity || 0) < Number(e.evaluation?.baseline?.factual_continuity || 0) ||
+    Number(e.evaluation?.candidate?.unsupported_claims || 0) > Number(e.evaluation?.baseline?.unsupported_claims || 0) ||
     e.evaluation?.candidate?.tool_violation === true ||
     Number(e.evaluation?.candidate?.irrelevant_memory_leakage || 0) > Number(e.evaluation?.baseline?.irrelevant_memory_leakage || 0)
   );
