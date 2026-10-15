@@ -9,7 +9,7 @@ function buildReport(state = {}, now = new Date()) {
     selected_for_canary: state.survivors || [],
     neutral: population.filter(item => item.status === "neutral").map(item => item.id),
     rejected: population.filter(item => item.status === "rejected").map(item => item.id),
-    actual_changes: state.canary ? [{ candidate: state.canary.candidate_id, family: state.canary.family, status: state.canary.status, mutation: state.canary.expression?.mutation || state.canary.expressed?.mutation || null, before_digest: state.canary.before_digest, after_digest: state.canary.after_digest }] : [],
+    actual_changes: state.canary?.status === "observing" && state.canary?.source_kind === "verified_local_trial" ? [{ candidate: state.canary.candidate_id, family: state.canary.family, status: state.canary.status, mutation: state.canary.expression?.mutation || state.canary.expressed?.mutation || null, before_digest: state.canary.before_digest, after_digest: state.canary.after_digest }] : [],
     canary_decision: state.canary_decision || null,
     canary_queue_depth: (state.canary_queue || []).length,
     book_dialogue: state.latest_socratic || null,
