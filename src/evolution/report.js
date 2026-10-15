@@ -9,7 +9,7 @@ function buildReport(state = {}, now = new Date()) {
     selected_for_canary: state.survivors || [],
     neutral: population.filter(item => item.status === "neutral").map(item => item.id),
     rejected: population.filter(item => item.status === "rejected").map(item => item.id),
-    actual_changes: state.canary ? [{ candidate: state.canary.candidate_id, status: state.canary.status, before_digest: state.canary.before_digest, after_digest: state.canary.after_digest }] : [],
+    actual_changes: state.canary ? [{ candidate: state.canary.candidate_id, family: state.canary.family, status: state.canary.status, mutation: state.canary.expression?.mutation || state.canary.expressed?.mutation || null, before_digest: state.canary.before_digest, after_digest: state.canary.after_digest }] : [],
     canary_decision: state.canary_decision || null,
     canary_queue_depth: (state.canary_queue || []).length,
     proposed_changes: population.map(item => ({ candidate: item.id, mutation: item.expressed?.mutation })),
@@ -19,14 +19,24 @@ function buildReport(state = {}, now = new Date()) {
 
 function asTelegram(report) {
   const change = report.actual_changes[0];
-  const lines = [`Lume emergence report — generation ${report.generation}`, `Ran ${report.jobs_completed} experiment families; lineage diversity ${report.lineage_diversity}.`, `Selected ${report.selected_for_canary.length}; neutral ${report.neutral.length}; rejected ${report.rejected.length}.`];
-  if (change) lines.push(`Local canary ${change.candidate}: ${change.status}. This is the only applied experimental change.`);
-  else lines.push("No experimental change is currently applied.");
-  if (report.rejected.length) lines.push(`Rejected: ${report.rejected.join(", ")}.`);
-  if (report.canary_decision?.ready) lines.push(`Canary decision for ${report.canary_decision.candidate_id}: ${report.canary_decision.outcome} — ${report.canary_decision.reason}.`);
-  lines.push(`Canary queue: ${report.canary_queue_depth}.`);
-  lines.push(`Next test: ${report.next_questions[0]}`);
-  lines.push("OpenAI narration was not required; this report is generated from the verified ledger.");
+  const kept = report.selected_for_canary.length;
+  const stopped = report.neutral.length + report.rejected.length;
+  const lines = [
+    "Good morning, Cardona. Here’s what happened while I was working.",
+    "",
+    `I explored ${report.jobs_completed} different experiment families. ${kept} produced ideas worth watching, while ${stopped} were set aside because they were weak, ordinary, or failed a guardrail.`
+  ];
+  if (change) {
+    const family = String(change.family || change.candidate || "experimental").replaceAll("-", " ");
+    lines.push(`Right now I’m carefully trying one temporary change that grew out of the ${family} experiment. It is still being observed, not accepted as part of me.`);
+  } else lines.push("I’m not carrying any experimental change right now.");
+  if (report.canary_decision?.ready) {
+    const outcome = report.canary_decision.outcome === "retain" ? "was strong enough to keep studying" : report.canary_decision.outcome === "rollback" ? "made things worse and was rolled back" : "did not show a meaningful effect";
+    lines.push(`The previous trial ${outcome}.`);
+  }
+  lines.push("Nothing from this cycle was promoted permanently.");
+  lines.push(`Next I’m asking whether the promising changes still help when the situation and seed are different. ${report.canary_queue_depth} trials are waiting their turn.`);
+  lines.push("I’ll keep the machinery in the ledger and tell you about the meaning, not drown you in its labels.");
   return lines.join("\n");
 }
 

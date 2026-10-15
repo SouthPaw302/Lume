@@ -63,7 +63,7 @@ test("generation-one expressed lineage remains candidate-only", () => {
 
 test("Telegram report distinguishes applied changes from proposals", () => {
   const report = buildReport({ generation: 2, survivors: ["candidate"], population: [{ id: "candidate", family: "field", status: "selected_for_canary" }], canary: { candidate_id: "older", status: "observing", before_digest: "a", after_digest: "b" } }, new Date("2026-10-14T00:00:00Z"));
-  const text = asTelegram(report); assert.match(text, /only applied experimental change/); assert.match(text, /generation 2/); assert.doesNotMatch(text, /candidate: observing/);
+  const text = asTelegram(report); assert.match(text, /temporary change/); assert.match(text, /not accepted as part of me/); assert.match(text, /Nothing from this cycle was promoted permanently/); assert.doesNotMatch(text, /candidate: observing/);
 });
 
 test("canary evaluator waits three windows and then makes a reversible decision", () => {
