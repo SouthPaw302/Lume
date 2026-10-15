@@ -60,6 +60,12 @@ identity files. `npm run archive:search -- <query>` searches it without loading
 the multi-gigabyte archive into model context. `npm run core:context -- <query>`
 returns Lume's identity and typed-memory capsule for harness consumption.
 
+## Local-device verification
+
+On the Lume PC, run `npm run health:local` to probe the selected S10 route, or `npm run health:local -- --usb` to check the USB-forwarded Qwen (`127.0.0.1:12435`), Kiwix (`127.0.0.1:18081`), Aurelian (`127.0.0.1:18082`), Hatch UI and dependency endpoint (`127.0.0.1:8788`), and local voice service (`127.0.0.1:8790`). The S10 watchdog recovers from the current repository's `scripts/s10/10-lume-services`. Existing LAN routing remains the default to avoid disrupting active deployments; set `LUME_S10_TRANSPORT=usb` to use ADB-forwarded loopback endpoints. Explicit `LUME_QWEN_URL`, `LUME_KIWIX_URL`, and `LUME_AURELIAN_URL` overrides remain supported.
+
+For optional local TTS verification run `npm run health:local -- --voice-roundtrip`. These require real local services and cannot be proven by GitHub Actions. The newly added diagnostics do not use microphone transcription. Existing speech-to-text code is left unchanged. A healthy HTML endpoint verifies the Hatch UI is served, not its visual behavior in a browser. No model weights or private transcripts are uploaded.
+
 ## Replay and recovery
 
 `src/replay.js` constructs the canonical envelope shared by both harness

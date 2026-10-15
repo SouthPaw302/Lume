@@ -63,7 +63,11 @@ function main() {
     else if (candidate.state === "regressed") core.experiments.rollback(candidate.id, "autonomous regression rollback");
   }
   const messages = telegramMessages(state.cursor);
-  const exercised = candidates(core).find(candidate => candidate.state === "exercised");
+  const activeCanary = process.env.LUME_ENABLE_EVOLUTION_CANARY === "1" ?
+    readJson(path.join(DATA, "evolution", "active-canary.json"), null) : null;
+  const promotedCanary = activeCanary?.status === "observing" && activeCanary.source_kind === "verified_local_trial" ?
+    candidates(core).find(candidate => candidate.id === activeCanary.candidate_id && candidate.state === "promoted") : null;
+  const exercised = candidates(core).find(candidate => candidate.state === "exercised") || promotedCanary;
   const evidenceIds = new Set(readJsonl(core.paths.evidence).filter(row => row.state === "prospective").map(row => row.evidence?.episode_id));
   const next = exercised && messages.find(message => correction.test(message.content) && !evidenceIds.has(`hermes-telegram-${message.id}`));
   if (next) {

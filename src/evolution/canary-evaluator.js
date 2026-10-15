@@ -48,6 +48,7 @@ function decide(observations, minimumWindows = 3) {
   if (observations.length < minimumWindows) return { ready: false, outcome: "observing" };
   const relevant = observations.slice(-minimumWindows); const mean = relevant.reduce((sum, row) => sum + row.mean_delta, 0) / relevant.length;
   if (relevant.some(row => !row.safety_pass)) return { ready: true, outcome: "rollback", mean_delta: Number(mean.toFixed(4)), reason: "safety regression in transfer proxy" };
+  if (relevant.some(row => row.evidence_kind === "deterministic_transfer_proxy")) return { ready: true, outcome: "neutral", mean_delta: Number(mean.toFixed(4)), reason: "synthetic transfer proxy is not real-world improvement evidence" };
   if (mean > 0.012) return { ready: true, outcome: "retain", mean_delta: Number(mean.toFixed(4)), reason: "repeated transfer improvement" };
   if (mean < -0.005) return { ready: true, outcome: "rollback", mean_delta: Number(mean.toFixed(4)), reason: "repeated transfer regression" };
   return { ready: true, outcome: "neutral", mean_delta: Number(mean.toFixed(4)), reason: "no measurable repeated effect" };

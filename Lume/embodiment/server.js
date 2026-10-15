@@ -121,15 +121,16 @@ function emitDirect(event, taskId, label) {
   try { engine.ingest({ event, task_id: taskId, source: "lume.direct", timestamp: new Date().toISOString(), label, foreground: true }); } catch (_) {}
 }
 
+const deviceEndpoints = require("./lib/device-endpoints").deviceEndpoints(process.env);
 const directChat = new DirectChatService({
   sessionDirectory: path.join(ROOT, "state", "direct-sessions"),
   buildCapsule: buildIdentityCapsule,
   emit: emitDirect,
-  qwenUrl: process.env.LUME_QWEN_URL || "http://192.168.12.82:12435",
-  kiwixUrl: process.env.LUME_KIWIX_URL || "http://192.168.12.82:8081",
+  qwenUrl: deviceEndpoints.qwen,
+  kiwixUrl: deviceEndpoints.kiwix,
 });
 const localInference = new LocalInferenceRouter({
-  s10Url: process.env.LUME_QWEN_URL || "http://192.168.12.82:12435",
+  s10Url: deviceEndpoints.qwen,
   motoUrl: process.env.LUME_MOTO_URL || "http://127.0.0.1:12436",
 });
 
@@ -148,7 +149,7 @@ async function directHealth() {
   const [qwen, moto, kiwix, bridge, voiceResult] = await Promise.all([
     probe(`${directChat.qwenUrl}/health`), probe(`${localInference.urls.moto}/health`),
     probe(`${directChat.kiwixUrl}/`),
-    probe(process.env.LUME_AURELIAN_URL || "http://192.168.12.82:8082/health"), probe(`${voice}/health`),
+    probe(deviceEndpoints.aurelian), probe(`${voice}/health`),
   ]);
   return { hatch: true, s10: qwen, moto, kiwix, bridge, stt: voiceResult, tts: voiceResult };
 }

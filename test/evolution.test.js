@@ -57,7 +57,7 @@ test("identity canary is real, singular, and automatically reversible", () => {
 test("Telegram report distinguishes applied changes from proposals", () => {
   const dialogue = ["questioner", "advocate", "skeptic", "synthesizer"].map(role => ({ role, text: role }));
   const report = buildReport({ generation: 2, survivors: ["candidate"], population: [{ id: "candidate", family: "field", status: "selected_for_canary" }], canary: { candidate_id: "older", status: "observing", before_digest: "a", after_digest: "b" }, latest_socratic: { book: "A real book", dialogue } }, new Date("2026-10-14T00:00:00Z"));
-  const text = asTelegram(report); assert.match(text, /temporary change/); assert.match(text, /not accepted as part of me/); assert.match(text, /A real book/); assert.match(text, /Questioner, Advocate, Skeptic, and Synthesizer/); assert.match(text, /Nothing from this cycle was promoted permanently/); assert.doesNotMatch(text, /candidate: observing/);
+  const text = asTelegram(report); assert.match(text, /not carrying any experimental change/); assert.doesNotMatch(text, /not accepted as part of me/); assert.match(text, /A real book/); assert.match(text, /Questioner, Advocate, Skeptic, and Synthesizer/); assert.match(text, /Nothing from this cycle was promoted permanently/); assert.doesNotMatch(text, /candidate: observing/);
 });
 
 test("canary evaluator waits three windows and then makes a reversible decision", () => {
