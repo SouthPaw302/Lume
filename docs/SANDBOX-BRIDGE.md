@@ -32,3 +32,22 @@ Open the repository's issues filtered by `lume:sandbox-task`. The issue contains
 the complete public task. The agent must not request local transcripts, private
 memory, tokens, or runtime databases. Builders cannot approve or promote their
 own work.
+
+## Local-agent verification inbox (separate from sandbox)
+
+A public issue prefixed `[Lume local check]` is a **local hardware/runtime
+verification handoff**, not a mutation, builder PR, or `lume:sandbox-task`.
+During the same bounded GitHub poll, the bridge reads the repository's open
+issues and publishes matching references under
+`${LUME_DATA_DIR}/bridge/github.json` as `local_checks`. Only the issue
+number, title and URL are copied; private host evidence stays on-device.
+
+The local agent can run `npm run evolution:bridge` to refresh its inbox,
+then open the specified issue using
+`gh issue view <number> --repo SouthPaw302/Lume`. If the host has not yet
+updated its checkout, it can use `gh issue view` directly. A verification
+handoff never authorizes a candidate mutation, canary, restart, promotion,
+private data upload, or self-evaluation. Report only redacted PASS/PARTIAL/
+BLOCKED/FAIL and code SHAs back as an issue comment. The original sandbox
+task queue and publication behavior are unchanged. A failure to list local
+check issues does not stop sandbox bridge processing.
