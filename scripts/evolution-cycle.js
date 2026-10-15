@@ -27,7 +27,8 @@ for (const row of nativeEvents) if (row.candidate?.id) nativeCandidates.set(row.
 const gate = candidate => {
   const id = candidate?.id || candidate?.candidate_id;
   const native = nativeCandidates.get(id);
-  if (!native || !["validated", "approved"].includes(native.state)) return { eligible: false, reason: "no independently qualified native experiment" };
+  const continuingPromotedCanary = candidate?.status === "observing" && native?.state === "promoted";
+  if (!native || (!["validated", "approved"].includes(native.state) && !continuingPromotedCanary)) return { eligible: false, reason: "no independently qualified native experiment" };
   if (candidate?.source_kind !== "verified_local_trial" || stableHash(candidate.expressed?.mutation) !== stableHash(native.mutation)) return { eligible: false, reason: "candidate mutation or source does not match native evidence" };
   return evidenceGate(id, privateEvidence);
 };
@@ -62,6 +63,10 @@ for (const native of qualifiedNative.slice(-3).reverse()) {
 let active = readJson(canaryPath, null); let decision = null;
 // A previously deployed synthetic-only canary is not qualified for a live phenotype.
 // Restore its recorded baseline rather than allowing seed-derived fitness to retain it.
+if (active?.status === "observing" && nativeCandidates.get(active.candidate_id)?.state === "regressed") {
+  const { resolve } = require("../src/evolution/canary");
+  active = resolve({ dataDir: data, outcome: "rollback", reason: "native experiment recorded post-deployment regression" });
+}
 if (active?.status === "observing" && !gate(active).eligible) {
   const { resolve } = require("../src/evolution/canary");
   active = resolve({ dataDir: data, outcome: "neutral", reason: "synthetic proxy lacks independently verified prospective evidence" });
