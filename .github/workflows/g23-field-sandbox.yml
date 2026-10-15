@@ -1,6 +1,8 @@
 name: Lume FIELD g23 real ONNX sandbox experiment
 
 on:
+  push:
+    branches: [sandbox/g23-field-v2]
   pull_request:
     branches: [evolution]
     paths:
