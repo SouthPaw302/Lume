@@ -31,5 +31,5 @@ approvals:
 skills:
   write_approval: false
   auto_load:
-    - g1-brainfuck-initiative
+    - g23-field-query-model
 _config_version: 50

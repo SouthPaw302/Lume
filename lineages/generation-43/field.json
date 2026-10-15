@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "candidate_id": "g23-field",
+  "generation": 43,
+  "family": "field",
+  "source_issue": 3,
+  "source_url": "https://github.com/SouthPaw302/Lume/issues/3",
+  "source_manifest": {
+    "mutation": {
+      "target": "hermes_skills",
+      "operation": "strengthen",
+      "action": "query_model"
+    },
+    "status": "observing"
+  },
+  "expression": {
+    "change_class": "skill",
+    "skill_path": "profiles/lume-candidate/skills/g23-field-query-model.md",
+    "candidate_profile": "profiles/lume-candidate/config.yaml"
+  },
+  "experiment": {
+    "kind": "paired_actual_onnx_inference",
+    "fixtures": "experiments/fixtures/g23-field-public.json",
+    "producer_script": "scripts/g23-field-experiment.cjs",
+    "independent_rubric_script": "scripts/g23-field-audit.cjs",
+    "primary_model": "onnx-community/SmolLM2-135M-Instruct-ONNX-MHA",
+    "advisory_model": "onnx-community/Qwen3-0.6B-ONNX",
+    "decoding": {
+      "max_new_tokens": 72,
+      "do_sample": false
+    },
+    "public_test_count": 4,
+    "query_count": 2,
+    "model_judgment_status": "pending_independent_review"
+  },
+  "status": "evaluation_pending",
+  "target_branch": "evolution",
+  "main_promotion_eligible": false,
+  "canary_eligible": false,
+  "rollback_parent": "4939c084f23a91c4867a79fd5f067f1a7e29ea56",
+  "guardrails": [
+    "public_synthetic_fixtures_only",
+    "no_private_lume_data",
+    "no_protected_files_modified",
+    "separate_nonself_review_required",
+    "no_direct_main_change"
+  ]
+}
