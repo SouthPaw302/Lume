@@ -26,7 +26,7 @@ GitHub artifacts.
 
 ## Evidence boundary
 
-GitHub population generation and deterministic transfer scores are **synthetic proxies**. They generate proposals and do not independently prove behavior improved. The local evolution cycle requires at least two separately dated, independently evaluated real interactions for the same candidate before canary deployment. A synthetic-only active canary is reverted to its previous snapshot when the updated controller starts. Proxy-only observations cannot justify permanent retention. The local experimental approval engine maintains its own evidence and promotion process; it is not equivalent to hosted CI.
+GitHub population generation and deterministic transfer scores are **synthetic proxies**. They generate proposals and do not independently prove behavior improved. The local evolution cycle links real experiment candidates by their exact ID and mutation; it requires at least two separately dated, independently evaluated real interactions before canary deployment. The canary is opt-in (`LUME_ENABLE_EVOLUTION_CANARY=1` on the PC) and affects only bounded Hermes policy instructions, never protected identity or other model settings. It waits for post-deployment prospective interactions, retains only after three across separate days, rolls back on regressions, and expires neutrally after 14 days without adequate evidence. A synthetic-only active canary is reverted to its previous snapshot when the updated controller starts. Proxy-only observations cannot justify permanent retention. The local experimental approval engine maintains its own evidence and promotion process; it is not equivalent to hosted CI.
 
 ## Failure behavior
 
