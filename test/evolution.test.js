@@ -12,6 +12,7 @@ const { inventory } = require("../src/evolution/provenance");
 const { applyMutation, deploy, resolve } = require("../src/evolution/canary");
 const { asTelegram, buildReport } = require("../src/evolution/report");
 const { decide, observe } = require("../src/evolution/canary-evaluator");
+const { issueBody, parseTaskReference, safeCandidate } = require("../src/evolution/github-bridge");
 
 test("all seven experiment families compile to replayable executable mutations", () => {
   const families = ["brainfuck", "field", "snake", "cellular-automata", "books", "self-reflection", "personality"];
@@ -64,4 +65,14 @@ test("canary evaluator waits three windows and then makes a reversible decision"
   assert.equal(decide(rows.slice(0, 2)).ready, false);
   const final = decide(rows); assert.equal(final.ready, true); assert.ok(["retain", "neutral", "rollback"].includes(final.outcome));
   assert.ok(rows.every(row => row.evidence_kind === "deterministic_transfer_proxy"));
+});
+
+test("GitHub bridge publishes a redacted single-candidate sandbox contract", () => {
+  const candidate = safeCandidate({ generation: 8, canary: { candidate_id: "g7-snake", family: "snake", status: "observing", expression: { mutation: { target: "hermes_skills", operation: "strengthen", value: 0.1 } } } });
+  assert.equal(candidate.candidate_id, "g7-snake");
+  const body = issueBody(candidate);
+  assert.match(body, /public, redacted handoff/);
+  assert.match(body, /PR into `evolution`/);
+  assert.equal(parseTaskReference("Evidence\nLume-Bridge-Task: #42"), 42);
+  assert.equal(parseTaskReference("no bridge marker"), null);
 });

@@ -9,6 +9,7 @@ const { paretoFront, vector } = require("../src/evolution/fitness");
 const { deploy } = require("../src/evolution/canary");
 const { decide, observe } = require("../src/evolution/canary-evaluator");
 const { atomicJson, appendJsonl, readJson, readJsonl, stableHash } = require("../src/io");
+const { sync: syncGithubBridge } = require("../src/evolution/github-bridge");
 
 const families = ["brainfuck", "field", "snake", "cellular-automata", "books", "self-reflection", "personality"];
 const data = path.resolve(process.env.LUME_DATA_DIR || path.join(os.homedir(), ".local", "share", "lumeai"));
@@ -52,4 +53,13 @@ if (!active || active.status !== "observing") {
 }
 const next = { ...state, generation, last_run_at: new Date().toISOString(), population, survivors, canary: active, canary_decision: decision, canary_queue: queue.slice(0, 7), lineages: [...state.lineages, ...survivors].slice(-100) };
 atomicJson(statePath, next); fs.chmodSync(statePath, 0o600);
-console.log(JSON.stringify({ generation, population: population.length, survivors, canary: active?.candidate_id || null, canary_status: active?.status || null, canary_decision: decision, queue_depth: queue.length }, null, 2));
+let githubBridge = { status: "disabled" };
+if (process.env.LUME_GITHUB_BRIDGE !== "0") {
+  try {
+    const result = syncGithubBridge({ dataDir: data });
+    githubBridge = { status: "ok", open_tasks: result.open_tasks.length, returned_prs: result.returned_prs.length, published: result.published };
+  } catch (error) {
+    githubBridge = { status: "deferred", reason: error.message.slice(0, 300) };
+  }
+}
+console.log(JSON.stringify({ generation, population: population.length, survivors, canary: active?.candidate_id || null, canary_status: active?.status || null, canary_decision: decision, queue_depth: queue.length, github_bridge: githubBridge }, null, 2));

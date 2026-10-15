@@ -30,3 +30,13 @@ OpenAI, Telegram, optional models, and any one runner are non-critical. The
 controller continues with deterministic compilers and sends the raw verified
 report if narration is unavailable. No hosted workflow can promote directly to
 `main`; missing local-canary evidence leaves a candidate on `evolution`.
+
+Daily and major-event reports are rendered by the installed local Piper voice
+and delivered through the `lume-live` Hermes Telegram profile. If local speech
+or media delivery fails, the same verified deterministic report is sent as
+text. Report delivery never invokes an inference model and never blocks the
+experiment controller.
+
+Remote sandbox work uses the low-resource GitHub queue described in
+`docs/SANDBOX-BRIDGE.md`. The local controller performs one bounded GitHub check
+inside its existing cycle; it does not run another resident bridge or gateway.
