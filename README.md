@@ -42,6 +42,7 @@ npm run replay
 npm run evolution:founding
 npm run evolution:cycle
 npm run evolution:report
+npm run health:local
 ```
 
 `fixtures:import-history` creates a private, mode-0600 historical set under the
