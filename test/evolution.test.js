@@ -12,7 +12,7 @@ const { inventory } = require("../src/evolution/provenance");
 const { applyMutation, deploy, resolve } = require("../src/evolution/canary");
 const { asTelegram, buildReport } = require("../src/evolution/report");
 const { decide, observe } = require("../src/evolution/canary-evaluator");
-const { issueBody, parseTaskReference, safeCandidate } = require("../src/evolution/github-bridge");
+const { issueBody, localCheckIssues, parseTaskReference, safeCandidate } = require("../src/evolution/github-bridge");
 
 test("all seven experiment families compile to replayable executable mutations", () => {
   const families = ["brainfuck", "field", "snake", "cellular-automata", "books", "self-reflection", "personality"];
@@ -76,4 +76,15 @@ test("GitHub bridge publishes a redacted single-candidate sandbox contract", () 
   assert.match(body, /PR into `evolution`/);
   assert.equal(parseTaskReference("Evidence\nLume-Bridge-Task: #42"), 42);
   assert.equal(parseTaskReference("no bridge marker"), null);
+});
+
+test("local PC verification handoffs appear separately from sandbox experiment tasks", () => {
+  const issues = [
+    { number: 6, state: "open", title: "[Lume local check] Validate PC/S10", html_url: "https://github.com/SouthPaw302/Lume/issues/6" },
+    { number: 3, state: "open", title: "[Lume sandbox] Express g23-field", html_url: "https://github.com/SouthPaw302/Lume/issues/3" },
+    { number: 7, state: "closed", title: "[Lume local check] old", html_url: "https://github.com/SouthPaw302/Lume/issues/7" },
+    { number: 8, state: "open", title: "[Lume local check] PR", html_url: "https://github.com/SouthPaw302/Lume/pull/8", pull_request: {} }
+  ];
+  assert.deepEqual(localCheckIssues(issues), [{ number: 6, title: "[Lume local check] Validate PC/S10", url: "https://github.com/SouthPaw302/Lume/issues/6" }]);
+  assert.deepEqual(localCheckIssues([]), []);
 });
