@@ -21,13 +21,13 @@ function runGh(args, options = {}) {
 }
 
 function safeCandidate(state = {}) {
-  const active = state.canary;
-  if (!active?.candidate_id || !active?.family) return null;
+  const active = state.canary?.status === "observing" ? state.canary : (state.canary_queue || [])[0];
+  if (!(active?.candidate_id || active?.id) || !active?.family) return null;
   return {
-    candidate_id: String(active.candidate_id),
+    candidate_id: String(active.candidate_id || active.id),
     family: String(active.family),
     generation: Number(state.generation || 0),
-    status: String(active.status || "unknown"),
+    status: String(active.status || "proposed_for_evidence"),
     mutation: active.expression?.mutation || active.expressed?.mutation || null
   };
 }
