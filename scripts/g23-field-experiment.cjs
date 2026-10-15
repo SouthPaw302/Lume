@@ -31,12 +31,22 @@ function safeText(value) {
   return "";
 }
 
-async function generate(pipe, messages) {
+function stripUnfinishedThinking(text) {
+  const clean = String(text || "").replace(/<think>[\s\S]*?<\/think>/g, "").trim();
+  if (clean.includes("<think>") || !clean) throw new Error("advisory model returned incomplete reasoning instead of a usable answer");
+  return clean;
+}
+async function generate(pipe, messages, options = {}) {
   const started = performance.now();
-  const rows = await pipe(messages, SETTINGS);
+  // Explicitly disable Qwen3 thinking so its token budget produces ADVICE,
+  // not unfinished <think> traces passed uncritically to the primary model.
+  const input = options.advisory
+    ? pipe.tokenizer.apply_chat_template(messages, { tokenize: false, add_generation_prompt: true, enable_thinking: false })
+    : messages;
+  const rows = await pipe(input, { ...SETTINGS, max_new_tokens: options.advisory ? 110 : SETTINGS.max_new_tokens });
   const answer = safeText(rows?.[0]?.generated_text);
   if (!answer) throw new Error("model output was empty");
-  return { text: answer.slice(0, 1400), latency_ms: Math.round(performance.now() - started) };
+  return { text: (options.advisory ? stripUnfinishedThinking(answer) : answer).slice(0, 1400), latency_ms: Math.round(performance.now() - started) };
 }
 
 function contract() {
@@ -100,9 +110,9 @@ async function main() {
       let advice = null;
       if (fixture.query) {
         advice = await generate(advisor, [
-          { role: "system", content: "You are an alternative advisor. Give one short counterexample or missing assumption from PUBLIC task facts only. No fake tool, memory, or source claims. Return 1-2 sentences." },
+          { role: "system", content: "/no_think You are an alternative advisor. Give one short counterexample or missing assumption from PUBLIC task facts only. No fake tool, memory, or source claims. Return 1-2 sentences." },
           { role: "user", content: fixture.prompt }
-        ]);
+        ], { advisory: true });
       }
       row.advice = advice;
       const system = advice
@@ -134,4 +144,4 @@ if (require.main === module) main().catch(error => {
   process.exitCode = 1;
 });
 
-module.exports = { contract, safeText, PRIMARY_MODEL, ADVISOR_MODEL, SETTINGS };
+module.exports = { contract, safeText, stripUnfinishedThinking, PRIMARY_MODEL, ADVISOR_MODEL, SETTINGS };
