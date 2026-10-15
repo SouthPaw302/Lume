@@ -19,7 +19,7 @@ function deploy({ dataDir, candidate, generation = null, clock = () => new Date(
   const active = readJson(activePath, null); if (active?.status === "observing") return active;
   const phenotypePath = path.join(directory, "phenotype.json"); const before = readJson(phenotypePath, { schema_version: 1, hermes_skills: [], identity_layers: [], behavioral_parameters: {}, workflow_topology: {} });
   const after = applyMutation(before, candidate.expressed.mutation);
-  const record = { schema_version: 1, candidate_id: candidate.id, family: candidate.family, status: "observing", deployed_generation: generation, deployed_at: clock().toISOString(), expression: candidate.expressed, fitness: candidate.fitness || null, observation_windows: 0, before, after, before_digest: stableHash(before), after_digest: stableHash(after), rollback_target: "embedded-before-snapshot" };
+  const record = { schema_version: 1, candidate_id: candidate.id, family: candidate.family, source_kind: candidate.source_kind || "unverified", status: "observing", deployed_generation: generation, deployed_at: clock().toISOString(), expression: candidate.expressed, fitness: candidate.fitness || null, observation_windows: 0, before, after, before_digest: stableHash(before), after_digest: stableHash(after), rollback_target: "embedded-before-snapshot" };
   atomicJson(phenotypePath, after); atomicJson(activePath, record); return record;
 }
 
