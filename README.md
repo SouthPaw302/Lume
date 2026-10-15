@@ -43,6 +43,8 @@ npm run evolution:founding
 npm run evolution:cycle
 npm run evolution:report
 npm run health:local
+# Optional USB coprocessor diagnostic: npm run health:local -- --usb --voice-roundtrip
+# Optional verified model inference: npm run models:probe -- --verify-inference --verify-embedding
 ```
 
 `fixtures:import-history` creates a private, mode-0600 historical set under the
