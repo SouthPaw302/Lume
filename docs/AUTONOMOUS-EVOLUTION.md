@@ -24,6 +24,10 @@ Schemas are enforced in `src/evolution/contracts.js`. Runtime state is private
 under `${LUME_DATA_DIR}/evolution`; only redacted evidence and hashes may become
 GitHub artifacts.
 
+## Evidence boundary
+
+GitHub population generation and deterministic transfer scores are **synthetic proxies**. They generate proposals and do not independently prove behavior improved. The local evolution cycle requires at least two separately dated, independently evaluated real interactions for the same candidate before canary deployment. A synthetic-only active canary is reverted to its previous snapshot when the updated controller starts. Proxy-only observations cannot justify permanent retention. The local experimental approval engine maintains its own evidence and promotion process; it is not equivalent to hosted CI.
+
 ## Failure behavior
 
 OpenAI, Telegram, optional models, and any one runner are non-critical. The
