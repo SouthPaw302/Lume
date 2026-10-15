@@ -17,7 +17,7 @@ function routeFor(kind) {
 }
 
 class LocalInferenceRouter {
-  constructor({ fetchImpl = fetch, s10Url = "http://127.0.0.1:12435", motoUrl = "http://127.0.0.1:12436" } = {}) {
+  constructor({ fetchImpl = fetch, s10Url = "http://192.168.12.82:12435", motoUrl = "http://127.0.0.1:12436" } = {}) {
     this.fetch = fetchImpl;
     this.urls = { s10: s10Url.replace(/\/$/, ""), moto: motoUrl.replace(/\/$/, "") };
   }
