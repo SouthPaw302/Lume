@@ -71,7 +71,8 @@ class ExperimentEngine {
 
   recordProspective(candidateId, evidence) {
     const candidate = this.get(candidateId);
-    if (!candidate || candidate.state !== "exercised") throw new Error("exercised candidate required");
+    const postDeployment = evidence?.post_deployment === true;
+    if (!candidate || (candidate.state !== "exercised" && !(postDeployment && candidate.state === "promoted"))) throw new Error("exercised candidate or explicitly marked promoted-canary evidence required");
     if (evidence?.source?.kind !== "real_interaction") throw new Error("prospective evidence must come from a real interaction");
     if (!evidence.episode_id) throw new Error("prospective episode_id is required");
     const occurredAt = new Date(evidence.occurred_at);
@@ -80,7 +81,8 @@ class ExperimentEngine {
     if (history.some(row => row.state === "prospective" && row.evidence?.episode_id === evidence.episode_id)) throw new Error("prospective episode already recorded");
     const recorded = { ...evidence, prompt_digest: stableHash(String(evidence.prompt || "")) };
     appendJsonl(this.evidencePath, { at: this.clock().toISOString(), candidate_id: candidateId, state: "prospective", evidence: recorded });
-    if (evidence.evaluation?.passed !== true) return this.transition(candidateId, "regressed", { reason: "prospective interaction failed", episode_id: evidence.episode_id });
+    if (evidence.evaluation?.passed !== true) return this.transition(candidateId, "regressed", { reason: postDeployment ? "post-deployment longitudinal interaction failed" : "prospective interaction failed", episode_id: evidence.episode_id });
+    if (postDeployment) return candidate; // Keep the already-promoted policy unchanged; the canary evaluator handles survival.
     const validations = history.filter(row => row.state === "prospective" && row.evidence?.evaluation?.passed === true).length + 1;
     const exercised = history.findLast(row => row.state === "exercised");
     const regressionRows = exercised?.evidence?.results?.filter(row => row.group === "regression") || [];
