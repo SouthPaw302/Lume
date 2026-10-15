@@ -5,14 +5,17 @@ const test = require("node:test");
 const { DirectChatService } = require("../Lume/embodiment/lib/direct-chat");
 const { LocalInferenceRouter } = require("../Lume/embodiment/lib/local-inference-router");
 const { DEFAULTS, diagnose, endpoints } = require("../scripts/check-local-bodies");
+const { LAN, USB, deviceEndpoints } = require("../Lume/embodiment/lib/device-endpoints");
 
-test("Hatch and router defaults match ADB-forwarded USB ports", () => {
+test("Hatch and router preserve legacy LAN defaults and expose opt-in ADB forwards", () => {
   const chat = new DirectChatService({ sessionDirectory: "/tmp/lume-test", buildCapsule: () => ({}), emit: () => {} });
   const router = new LocalInferenceRouter();
-  assert.equal(chat.qwenUrl, DEFAULTS.s10);
-  assert.equal(chat.kiwixUrl, DEFAULTS.kiwix);
-  assert.equal(router.urls.s10, DEFAULTS.s10);
-  assert.equal(DEFAULTS.aurelian, "http://127.0.0.1:18082");
+  assert.equal(chat.qwenUrl, LAN.qwen);
+  assert.equal(chat.kiwixUrl, LAN.kiwix);
+  assert.equal(router.urls.s10, LAN.qwen);
+  assert.equal(deviceEndpoints({}).qwen, LAN.qwen);
+  assert.equal(deviceEndpoints({ LUME_S10_TRANSPORT: "usb" }).qwen, USB.qwen);
+  assert.equal(deviceEndpoints({ LUME_S10_TRANSPORT: "usb" }).kiwix, USB.kiwix);
 });
 
 test("explicit user environment URL settings still override defaults", () => {
@@ -32,12 +35,12 @@ test("local diagnostic distinguishes HTTP availability from dependent health", a
   assert.equal(result.ok, true);
   assert.equal(result.services.length, 7);
   assert.equal(result.hatch_dependencies.moto, false);
-  assert(calls.some(url => url === "http://127.0.0.1:18081/"));
-  assert(calls.some(url => url === "http://127.0.0.1:18082/health"));
+  assert(calls.some(url => url === LAN.kiwix + "/"));
+  assert(calls.some(url => url === LAN.aurelian));
 });
 
 test("local diagnostic fails closed when USB model is unreachable", async () => {
-  const result = await diagnose({ fetchImpl: async url => {
+  const result = await diagnose({ env: { LUME_S10_TRANSPORT: "usb" }, fetchImpl: async url => {
     if (url.includes(":12435")) throw Error("not connected");
     return { ok: true, status: 200, json: async () => ({}) };
   } });
