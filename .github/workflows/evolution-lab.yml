@@ -146,14 +146,28 @@ jobs:
     environment: evolution
     timeout-minutes: 5
     steps:
-      - run: echo "Promotion target is evolution; local canary and longitudinal survival gate main."
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: node scripts/hosted-lab-gate.js promotion
+      - uses: actions/upload-artifact@v4
+        with:
+          name: promotion-evidence-gate-${{ github.run_id }}
+          path: hosted-promotion-gate.json
 
   longitudinal-survival:
     needs: promotion
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - run: echo "Await local canary evidence; no direct main promotion from hosted runners."
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: node scripts/hosted-lab-gate.js longitudinal-survival
+      - uses: actions/upload-artifact@v4
+        with:
+          name: longitudinal-evidence-gate-${{ github.run_id }}
+          path: hosted-longitudinal-survival-gate.json
 
   daily-report:
     if: always()
@@ -161,4 +175,4 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - run: echo "Generation ${{ needs['population-generate'].outputs.generation }} completed with verified job outcomes."
+      - run: echo "Generation ${{ needs['population-generate'].outputs.generation }} completed hosted checks. Local promotion remains blocked pending private device evidence."
