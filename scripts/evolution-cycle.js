@@ -9,6 +9,7 @@ const { paretoFront, vector } = require("../src/evolution/fitness");
 const { deploy } = require("../src/evolution/canary");
 const { decide, observe } = require("../src/evolution/canary-evaluator");
 const { evidenceGate } = require("../src/evolution/evidence-gate");
+const { decideRealCanary } = require("../src/evolution/real-canary");
 const { atomicJson, appendJsonl, readJson, readJsonl, stableHash } = require("../src/io");
 const { sync: syncGithubBridge } = require("../src/evolution/github-bridge");
 
@@ -20,7 +21,16 @@ const observationsPath = path.join(data, "evolution", "canary-observations.jsonl
 const outcomesPath = path.join(data, "evolution", "canary-outcomes.jsonl");
 const prospectivePath = path.join(data, "experiments", "evidence.jsonl");
 const privateEvidence = readJsonl(prospectivePath);
-const gate = candidate => evidenceGate(candidate?.id || candidate?.candidate_id, privateEvidence);
+const nativeEvents = readJsonl(path.join(data, "experiments", "candidates.jsonl"));
+const nativeCandidates = new Map();
+for (const row of nativeEvents) if (row.candidate?.id) nativeCandidates.set(row.candidate.id, row.candidate);
+const gate = candidate => {
+  const id = candidate?.id || candidate?.candidate_id;
+  const native = nativeCandidates.get(id);
+  if (!native || !["validated", "approved", "promoted"].includes(native.state)) return { eligible: false, reason: "no independently qualified native experiment" };
+  if (candidate?.source_kind !== "verified_local_trial" || stableHash(candidate.expressed?.mutation) !== stableHash(native.mutation)) return { eligible: false, reason: "candidate mutation or source does not match native evidence" };
+  return evidenceGate(id, privateEvidence);
+};
 const state = readJson(statePath, { schema_version: 1, generation: 0, lineages: [] });
 const generation = state.generation + 1;
 const seedBase = process.env.LUME_GENERATION_SEED || `generation-${generation}`;
@@ -36,6 +46,19 @@ for (const item of population) item.status = survivors.includes(item.id) ? "prop
 const existingQueue = [];
 for (const candidate of state.canary_queue || []) if (!existingQueue.some(queued => queued.family === candidate.family)) existingQueue.push(candidate);
 for (const item of population.filter(item => item.status === "proposed_for_evidence")) if (!existingQueue.some(candidate => candidate.family === item.family)) existingQueue.push(item);
+// Carry only locally witnessed, independent native candidates across to
+// evolution. Simulation families stay in the proposal queue, never canaries.
+const qualifiedNative = [...nativeCandidates.values()].filter(candidate =>
+  ["validated", "approved", "promoted"].includes(candidate.state) &&
+  evidenceGate(candidate.id, privateEvidence).eligible
+).sort((a, b) => String(a.created_at).localeCompare(String(b.created_at)));
+for (const native of qualifiedNative.slice(-3).reverse()) {
+  const source = {
+    id: native.id, family: "local-evidence", source_kind: "verified_local_trial",
+    status: "qualified_for_local_canary", expressed: { mutation: native.mutation }
+  };
+  if (!existingQueue.some(candidate => candidate.id === source.id)) existingQueue.unshift(source);
+}
 let active = readJson(canaryPath, null); let decision = null;
 // A previously deployed synthetic-only canary is not qualified for a live phenotype.
 // Restore its recorded baseline rather than allowing seed-derived fitness to retain it.
@@ -43,28 +66,29 @@ if (active?.status === "observing" && !gate(active).eligible) {
   const { resolve } = require("../src/evolution/canary");
   active = resolve({ dataDir: data, outcome: "neutral", reason: "synthetic proxy lacks independently verified prospective evidence" });
 }
-if (active?.status === "observing" && !active.expression?.mutation) {
-  const { resolve } = require("../src/evolution/canary");
-  active = resolve({ dataDir: data, outcome: "neutral", reason: "legacy canary exceeded observation window without replayable expression" });
-  decision = { ready: true, candidate_id: active.candidate_id, family: active.family, outcome: "neutral", reason: active.reason };
-  appendJsonl(outcomesPath, { at: new Date().toISOString(), candidate_id: active.candidate_id, family: active.family, ...decision });
-} else if (active?.status === "observing" && generation > Number(active.deployed_generation || 0)) {
-  const evidence = observe(active, generation); appendJsonl(observationsPath, evidence);
-  const rows = readJsonl(observationsPath).filter(row => row.candidate_id === active.candidate_id); decision = { candidate_id: active.candidate_id, family: active.family, ...decide(rows, 3) };
+// Longitudinal decisions use *new* real interactions since deployment.
+// No deterministic noise or fixture-only scores are accepted as survival.
+if (active?.status === "observing") {
+  const decisionResult = decideRealCanary(active, privateEvidence);
+  decision = { candidate_id: active.candidate_id, family: active.family, ...decisionResult };
   if (decision.ready) {
-    const { resolve } = require("../src/evolution/canary"); active = resolve({ dataDir: data, outcome: decision.outcome, reason: `${decision.reason}; mean_delta=${decision.mean_delta}` });
-    appendJsonl(outcomesPath, { at: new Date().toISOString(), candidate_id: active.candidate_id, family: active.family, ...decision, evidence_digests: rows.slice(-3).map(row => row.digest) });
-  } else active = { ...active, observation_windows: rows.length };
+    const { resolve } = require("../src/evolution/canary");
+    active = resolve({ dataDir: data, outcome: decision.outcome, reason: decision.reason });
+    appendJsonl(outcomesPath, {
+      at: new Date().toISOString(), candidate_id: active.candidate_id,
+      family: active.family, ...decision, evidence_digests: decision.evidence_digests || []
+    });
+  }
 }
 const finishedId = active && active.status !== "observing" ? active.candidate_id : null;
 let queue = existingQueue.filter(candidate => candidate.id !== finishedId && candidate.id !== active?.candidate_id);
 if (!active || active.status !== "observing") {
-  const qualifiedIndex = queue.findIndex(candidate => gate(candidate).eligible);
+  const qualifiedIndex = process.env.LUME_ENABLE_EVOLUTION_CANARY === "1" ? queue.findIndex(candidate => gate(candidate).eligible) : -1;
   const nextCandidate = qualifiedIndex < 0 ? null : queue.splice(qualifiedIndex, 1)[0];
   active = nextCandidate ? deploy({ dataDir: data, candidate: nextCandidate, generation }) : active;
 }
 const next = { ...state, generation, last_run_at: new Date().toISOString(), population, survivors, canary: active, canary_decision: decision, canary_queue: queue.slice(0, 7),
-  evidence_policy: "real_prospective_only", lineages: [...state.lineages, ...survivors].slice(-100) };
+  evidence_policy: "real_prospective_only_opt_in", lineages: [...state.lineages, ...survivors].slice(-100) };
 atomicJson(statePath, next); fs.chmodSync(statePath, 0o600);
 let githubBridge = { status: "disabled" };
 if (process.env.LUME_GITHUB_BRIDGE !== "0") {
