@@ -3,7 +3,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
-const { contract, safeText, PRIMARY_MODEL, ADVISOR_MODEL } = require("../scripts/g23-field-experiment.cjs");
+const { contract, safeText, stripUnfinishedThinking, PRIMARY_MODEL, ADVISOR_MODEL } = require("../scripts/g23-field-experiment.cjs");
 const { audit, checkFixture } = require("../scripts/g23-field-audit.cjs");
 const fixtures = require("../experiments/fixtures/g23-field-public.json");
 
@@ -72,4 +72,10 @@ test("auditor rejects simulated or incomplete model results", () => {
   assert.throws(() => audit({ ...raw, rows: raw.rows.slice(0, 3) }), /missing model output rows/);
   assert.throws(() => audit({ ...raw, models: { primary: "same", advisory: "same" } }), /distinct advisory/);
   assert.throws(() => audit({ ...raw, rows: raw.rows.map((r, i) => i === 2 ? { ...r, advice: { text: "Not allowed" } } : r) }), /scope violated/);
+});
+
+test("advisory traces cannot masquerade as an actual second opinion", () => {
+  assert.throws(() => stripUnfinishedThinking("<think>still considering"), /incomplete reasoning/);
+  assert.equal(stripUnfinishedThinking("<think>private reasoning</think>\nCheck units first."), "Check units first.");
+  assert.equal(stripUnfinishedThinking("A sync status alone does not prove upload."), "A sync status alone does not prove upload.");
 });
