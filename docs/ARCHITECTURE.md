@@ -35,8 +35,24 @@ HMAC-linked Cardona approval can unlock promotion.
 
 Hermes is the live Telegram harness. OpenClaw's gateway is disabled and retained
 as a cold rollback; its stored OpenAI OAuth is consumed through a loopback-only
-bridge. `/home/koss/clawd` remains the external historical laboratory and live
-messaging workspace, while this repository owns the runtime-independent core.
+bridge. This repository now owns the Hatch server, local voice code, scheduled
+development controller, and runtime-independent core. `/home/koss/clawd` is a
+historical/private data source and currently also supplies the known-good Python
+voice environment and local book corpus; neither dependency owns Lume's state.
+
+## Local bodies
+
+The old PC is the authoritative home: Hermes, identity and memory, Hatch,
+experiment state, GitHub bridge, reports, and recovery ledger. The connected S10
+is a USB-attached inference coprocessor. Termux runs llama.cpp `llama-server`
+with the local Qwen3 4B GGUF, Kiwix, and Aurelian. ADB forwards those loopback
+services to PC ports 12435, 18081, and 18082; Wi-Fi is not required. The watchdog
+maintains the forwards and remote processes while allowing one long-running
+llama.cpp slot up to thirty minutes before declaring it stalled.
+
+Hatch is served from `Lume/embodiment` over the private home LAN and shows the
+active Hermes-controlled generation and canary. Short companion conversations
+use S10 Qwen; speech recognition and Piper voice remain local to the PC.
 
 The external archive index at `LUME_DATA_DIR/archive/index.jsonl` covers dated
 memory, canon notes, SECOND_BRAIN, research reports, nightly outputs, and key

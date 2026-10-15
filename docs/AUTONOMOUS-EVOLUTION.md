@@ -40,3 +40,10 @@ experiment controller.
 Remote sandbox work uses the low-resource GitHub queue described in
 `docs/SANDBOX-BRIDGE.md`. The local controller performs one bounded GitHub check
 inside its existing cycle; it does not run another resident bridge or gateway.
+
+The book experiment runs once nightly. It selects a real EPUB/TXT chapter from
+the local library, then gives the passage to four isolated local-model roles in
+sequence: Questioner, Advocate, Skeptic, and Synthesizer. Their output is an
+expiring hypothesis, never an immediate trait. If any S10 llama.cpp turn fails,
+the ledger records an explicit deterministic fallback and the report refuses to
+describe it as learning.
