@@ -15,5 +15,4 @@ NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=read-only
-ReadWritePaths=/home/koss/.local/share/lumeai /home/koss/.hermes /home/koss/.openclaw /home/koss/clawd
-
+ReadWritePaths=/home/koss/.local/share/lumeai /home/koss/.hermes /home/koss/.openclaw /home/koss/LumeAI

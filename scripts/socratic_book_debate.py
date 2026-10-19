@@ -25,7 +25,7 @@ from pathlib import Path
 ROOT = Path(os.environ.get("LUME_PROJECT_ROOT", "/home/koss/LumeAI"))
 MEMORY = ROOT / "memory"
 OUT_DIR = Path(os.environ.get("LUME_SOCRATIC_DIR", "/home/koss/.local/share/lumeai/experiments/socratic"))
-BOOKS_DIR = Path(os.environ.get("LUME_BOOK_LIBRARY", "/home/koss/clawd/canon/books"))
+BOOKS_DIR = Path(os.environ.get("LUME_BOOK_LIBRARY", "/home/koss/LumeAI/canon/books"))
 
 
 @dataclass

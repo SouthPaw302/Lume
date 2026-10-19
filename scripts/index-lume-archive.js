@@ -5,7 +5,7 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 
-const archive = path.resolve(process.env.LUME_ARCHIVE_ROOT || "/home/koss/clawd");
+const archive = path.resolve(process.env.LUME_ARCHIVE_ROOT || "/home/koss/LumeAI");
 const data = path.resolve(process.env.LUME_DATA_DIR || path.join(os.homedir(), ".local", "share", "lumeai"));
 const destination = path.join(data, "archive", "index.jsonl");
 const roots = ["memory", "canon/notes", "SECOND_BRAIN", "research_loop", "reports", "nightly"];

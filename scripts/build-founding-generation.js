@@ -5,7 +5,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { inventory } = require("../src/evolution/provenance");
 const root = path.resolve(__dirname, "..");
-const archive = process.env.LUME_ARCHIVE_ROOT || "/home/koss/clawd";
+const archive = process.env.LUME_ARCHIVE_ROOT || "/home/koss/LumeAI";
 const output = path.join(root, "provenance", "founding-generation.json");
 const value = inventory([root, archive], root);
 fs.mkdirSync(path.dirname(output), { recursive: true });

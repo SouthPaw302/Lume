@@ -64,7 +64,7 @@ fi
 
 mkdir -p "$(dirname "$OUT")"
 
-PIPER_PYTHON="${LUME_PIPER_PYTHON:-/home/koss/clawd/Lume/embodiment/.venv-stt/bin/python}"
+PIPER_PYTHON="${LUME_PIPER_PYTHON:-/home/koss/LumeAI/Lume/embodiment/.venv-stt/bin/python}"
 PIPER_SCRIPT="$BASE/scripts/piper_tts.py"
 PIPER_MODEL="$BASE/Lume/embodiment/models/piper/en_US-amy-medium.onnx"
 TMP_DIR="$(mktemp -d)"
